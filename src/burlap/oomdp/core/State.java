@@ -597,9 +597,9 @@ public class State {
 		
 		List <List <String>> res = new ArrayList <List<String>>();
 		List <List <String>> currentBindingSets = new ArrayList <List<String>>();
-		List <String> uniqueRenames = this.identifyUniqueClassesInParameters(paramOrderGroups);
-		//List <String> uniqueParamClases = this.identifyUniqueClassesInParameters(paramClasses);
-		Set<String> uniqueParamClasses = new HashSet<String>(Arrays.asList(paramOrderGroups));
+		Set<String> uniqueRenamesSet = new LinkedHashSet<String>(Arrays.asList(paramOrderGroups));
+		List<String> uniqueRenames = new ArrayList<String>(uniqueRenamesSet);
+		Set<String> uniqueParamClasses = new LinkedHashSet<String>(Arrays.asList(paramClasses));
 		Map <String, List <ObjectInstance>>	instanceMap = objectIndexByTrueClass;
 		
 		//first make sure we have objects for each class parameter; if not return empty list
@@ -614,16 +614,12 @@ public class State {
 			}
 		}
 		
-		
 		this.getPossibleRenameBindingsHelper(res, currentBindingSets, 0, this.objectMap, uniqueRenames, paramClasses, paramOrderGroups);
 		
 		
 		return res;
 		
 	}
-	
-	
-	
 	
 	@Override
 	public String toString(){
@@ -644,7 +640,7 @@ public class State {
 		
 		String r = uniqueOrderGroups.get(bindIndex);
 		String c = this.parameterClassAssociatedWithOrderGroup(r, paramOrderGroups, paramClasses);
-		Map <String, ObjectInstance> cands = this.objectsMatchingClassMap(remainingObjects, c);
+		Map <String, ObjectInstance> cands = this.objectsMatchingClass(remainingObjects, c);
 		int k = this.numOccurencesOfOrderGroup(r, paramOrderGroups);
 		List <List <String>> combs = this.getAllCombinationsOfObjectsString(cands, k);
 		for(List <String> cb : combs){
@@ -655,7 +651,7 @@ public class State {
 			//}
 			nextBinding.add(cb);
 			Map <String, ObjectInstance> nextObsReamining = new HashMap<String, ObjectInstance>(remainingObjects);
-			this.objectListDifferenceMap(nextObsReamining, cb);
+			this.removeObjects(nextObsReamining, cb);
 			
 			//recursive step
 			this.getPossibleRenameBindingsHelper(res, nextBinding, bindIndex+1, nextObsReamining, uniqueOrderGroups, paramClasses, paramOrderGroups);
@@ -666,55 +662,10 @@ public class State {
 		
 	}
 	
-	private void getPossibleRenameBindingsHelper(List <List <String>> res, List <List <String>> currentBindingSets, int bindIndex,
-			List <ObjectInstance> remainingObjects, List <String> uniqueOrderGroups, String [] paramClasses, String [] paramOrderGroups){
-		
-		if(bindIndex == uniqueOrderGroups.size()){
-			//base case, put it all together and add it to the result
-			res.add(this.getBindngFromCombinationSet(currentBindingSets, uniqueOrderGroups, paramOrderGroups));
-			return ;
-		}
-		
-		//otherwise we're in the recursive case
-		
-		String r = uniqueOrderGroups.get(bindIndex);
-		String c = this.parameterClassAssociatedWithOrderGroup(r, paramOrderGroups, paramClasses);
-		List <ObjectInstance> cands = this.objectsMatchingClass(remainingObjects, c);
-		int k = this.numOccurencesOfOrderGroup(r, paramOrderGroups);
-		List <List <String>> combs = this.getAllCombinationsOfObjects(cands, k);
-		for(List <String> cb : combs){
-			
-			List <List<String>> nextBinding = new ArrayList<List<String>>(currentBindingSets.size());
-			for(List <String> prevBind : currentBindingSets){
-				nextBinding.add(prevBind);
-			}
-			nextBinding.add(cb);
-			List <ObjectInstance> nextObsReamining = this.objectListDifference(remainingObjects, cb);
-			
-			//recursive step
-			this.getPossibleRenameBindingsHelper(res, nextBinding, bindIndex+1, nextObsReamining, uniqueOrderGroups, paramClasses, paramOrderGroups);
-			
-		}
-		
-		
-		
-	}
-	
-	private void objectListDifferenceMap(Map<String, ObjectInstance> objects, Collection <String> toRemove){
+	private void removeObjects(Map<String, ObjectInstance> objects, Collection <String> toRemove){
 		for (String name : toRemove) {
 			objects.remove(name);
 		}
-	}
-	
-	private List <ObjectInstance> objectListDifference(List <ObjectInstance> objects, List <String> toRemove){
-		List <ObjectInstance> remaining = new ArrayList<ObjectInstance>(objects.size());
-		for(ObjectInstance oi : objects){
-			String oname = oi.getName();
-			if(!toRemove.contains(oname)){
-				remaining.add(oi);
-			}
-		}
-		return remaining;
 	}
 	
 	private int getNumOccurencesOfClassInParameters(String className, String [] paramClasses){
@@ -726,17 +677,6 @@ public class State {
 		}
 		return num;
 	}
-	
-	private List <String> identifyUniqueClassesInParameters(String [] paramClasses){
-		List <String> unique = new ArrayList <String>();
-		for(int i = 0; i < paramClasses.length; i++){
-			if(!unique.contains(paramClasses[i])){
-				unique.add(paramClasses[i]);
-			}
-		}
-		return unique;
-	}
-	
 	
 	
 	private int numOccurencesOfOrderGroup(String rename, String [] orderGroups){
@@ -761,23 +701,7 @@ public class State {
 	}
 	
 	
-	private List <ObjectInstance> objectsMatchingClass(Collection <ObjectInstance> sourceObs, String cname){
-		
-		List <ObjectInstance> res = new ArrayList<ObjectInstance>(sourceObs.size());
-		
-		for(ObjectInstance o : sourceObs){
-			
-			if(o.getTrueClassName().equals(cname)){
-				res.add(o);
-			}
-			
-		}
-		
-		return res;
-		
-	}
-	
-	private Map <String, ObjectInstance> objectsMatchingClassMap(Map <String, ObjectInstance> sourceObs, String cname){
+	private Map <String, ObjectInstance> objectsMatchingClass(Map <String, ObjectInstance> sourceObs, String cname){
 		
 		Map <String, ObjectInstance> res = new HashMap<String, ObjectInstance>(sourceObs.size());
 		
