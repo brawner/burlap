@@ -167,7 +167,7 @@ public class State {
 			return ; //make sure we're removing something that actually exists in this state!
 		}
 		
-		int id = objectNameIdLookup.get(oname);
+		Integer id = objectNameIdLookup.get(oname);
 		objectInstancesMasterList.set(id, null);
 		
 		
