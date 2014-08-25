@@ -339,14 +339,20 @@ public class ObjectInstance {
 	 * @return a string representation of this object including its name and value attribute value assignment.
 	 */
 	public String getObjectDescription(){
-		
-		String desc = name + " (" + this.getTrueClassName() + ")\n";
+		// 50 was chosen arbitrarily. If it can be initialized to something more intelligent, better.
+		StringBuilder builder = new StringBuilder(50);
+		builder.append(name);
+		builder.append(" (");
+		builder.append(this.getTrueClassName());
+		builder.append(")\n");
 		for(Value v : values){
-			desc = desc + "\t" + v.attName() + ":\t" + v.getStringVal() + "\n";
+			builder.append("\t");
+			builder.append(v.attName());
+			builder.append(":\t");
+			builder.append(v.getStringVal());
+			builder.append("\n");
 		}
-		
-		return desc;
-	
+		return builder.toString();
 	}
 	
 	
