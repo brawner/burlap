@@ -614,7 +614,8 @@ public class State {
 			}
 		}
 		
-		this.getPossibleRenameBindingsHelper(res, currentBindingSets, 0, this.objectMap, uniqueRenames, paramClasses, paramOrderGroups);
+		
+		this.getPossibleRenameBindingsHelper(res, currentBindingSets, 0, this.objectMap.keySet(), this.objectMap, uniqueRenames, paramClasses, paramOrderGroups);
 		
 		
 		return res;
@@ -627,8 +628,8 @@ public class State {
 	}
 	
 	
-	private void getPossibleRenameBindingsHelper(List <List <String>> res, List <List <String>> currentBindingSets, int bindIndex,
-			Map <String, ObjectInstance> remainingObjects, List <String> uniqueOrderGroups, String [] paramClasses, String [] paramOrderGroups){
+	private void getPossibleRenameBindingsHelper(List <List <String>> res, List <List <String>> currentBindingSets, int bindIndex, Set<String> remainingObjects,
+			Map <String, ObjectInstance> objectLookup, List <String> uniqueOrderGroups, String [] paramClasses, String [] paramOrderGroups){
 		
 		if(bindIndex == uniqueOrderGroups.size()){
 			//base case, put it all together and add it to the result
@@ -637,35 +638,104 @@ public class State {
 		}
 		
 		//otherwise we're in the recursive case
-		
 		String r = uniqueOrderGroups.get(bindIndex);
+		
 		String c = this.parameterClassAssociatedWithOrderGroup(r, paramOrderGroups, paramClasses);
-		Map <String, ObjectInstance> cands = this.objectsMatchingClass(remainingObjects, c);
+		List <String> cands = this.objectsMatchingClass(remainingObjects, objectLookup, c);
 		int k = this.numOccurencesOfOrderGroup(r, paramOrderGroups);
+		
 		List <List <String>> combs = this.getAllCombinationsOfObjectsString(cands, k);
+		
+		
 		for(List <String> cb : combs){
 			
 			List <List<String>> nextBinding = new ArrayList<List<String>>(currentBindingSets);
+			nextBinding.add(cb);
 			//for(List <String> prevBind : currentBindingSets){
 			//	nextBinding.add(prevBind);
 			//}
-			nextBinding.add(cb);
-			Map <String, ObjectInstance> nextObsReamining = new HashMap<String, ObjectInstance>(remainingObjects);
+			
+			Set<String> nextObsReamining = new HashSet<String>(remainingObjects);
 			this.removeObjects(nextObsReamining, cb);
 			
 			//recursive step
-			this.getPossibleRenameBindingsHelper(res, nextBinding, bindIndex+1, nextObsReamining, uniqueOrderGroups, paramClasses, paramOrderGroups);
+			this.getPossibleRenameBindingsHelper(res, nextBinding, bindIndex+1, nextObsReamining, objectLookup, uniqueOrderGroups, paramClasses, paramOrderGroups);
 			
 		}
-		
 		
 		
 	}
 	
-	private void removeObjects(Map<String, ObjectInstance> objects, Collection <String> toRemove){
-		for (String name : toRemove) {
-			objects.remove(name);
+	private void getPossibleRenameBindingsHelperProfiled(List <List <String>> res, List <List <String>> currentBindingSets, int bindIndex, Set<String> remainingObjects,
+			Map <String, ObjectInstance> objectLookup, List <String> uniqueOrderGroups, String [] paramClasses, String [] paramOrderGroups){
+		long start, end;
+		
+		long[] times = new long[10];
+		
+		
+		start = System.nanoTime();
+		if(bindIndex == uniqueOrderGroups.size()){
+			//base case, put it all together and add it to the result
+			res.add(this.getBindngFromCombinationSet(currentBindingSets, uniqueOrderGroups, paramOrderGroups));
+			return ;
 		}
+		end = System.nanoTime();
+		times[0] += end - start;
+		
+		//otherwise we're in the recursive case
+		start = System.nanoTime();
+		String r = uniqueOrderGroups.get(bindIndex);
+		end  = System.nanoTime();
+		times[1] += end - start;
+		
+		start = System.nanoTime();
+		String c = this.parameterClassAssociatedWithOrderGroup(r, paramOrderGroups, paramClasses);
+		List <String> cands = this.objectsMatchingClass(remainingObjects, objectLookup, c);
+		int k = this.numOccurencesOfOrderGroup(r, paramOrderGroups);
+		end = System.nanoTime();
+		times[2] += end - start;
+		
+		start = System.nanoTime();
+		List <List <String>> combs = this.getAllCombinationsOfObjectsString(cands, k);
+		end = System.nanoTime();
+		times[3] += end - start;
+		
+		
+		for(List <String> cb : combs){
+			
+			start = System.nanoTime();
+			List <List<String>> nextBinding = new ArrayList<List<String>>(currentBindingSets);
+			nextBinding.add(cb);
+			end = System.nanoTime();
+			times[4] += end - start;
+			//for(List <String> prevBind : currentBindingSets){
+			//	nextBinding.add(prevBind);
+			//}
+			
+			start = System.nanoTime();
+			Set<String> nextObsReamining = new HashSet<String>(remainingObjects);
+			end = System.nanoTime();
+			times[5] += end - start;
+			
+			start = System.nanoTime();
+			this.removeObjects(nextObsReamining, cb);
+			end = System.nanoTime();
+			times[6] += end - start;
+			
+			//recursive step
+			this.getPossibleRenameBindingsHelper(res, nextBinding, bindIndex+1, nextObsReamining, objectLookup, uniqueOrderGroups, paramClasses, paramOrderGroups);
+			
+		}
+		for (long time : times) {
+			System.out.print(Long.toString(time) + ", " );
+		}
+		System.out.print("\n");
+		
+		
+	}
+	
+	private void removeObjects(Set<String> objects, Collection <String> toRemove){
+		objects.removeAll(toRemove);
 	}
 	
 	private int getNumOccurencesOfClassInParameters(String className, String [] paramClasses){
@@ -701,15 +771,14 @@ public class State {
 	}
 	
 	
-	private Map <String, ObjectInstance> objectsMatchingClass(Map <String, ObjectInstance> sourceObs, String cname){
+	private List <String> objectsMatchingClass(Set<String> objectsRemaining, Map <String, ObjectInstance> sourceObs, String cname){
 		
-		Map <String, ObjectInstance> res = new HashMap<String, ObjectInstance>(sourceObs.size());
-		
+		List <String> res = new ArrayList<String>(objectsRemaining.size());
 		ObjectInstance object;
-		for(Entry<String, ObjectInstance> entry : sourceObs.entrySet()){
-			object = entry.getValue();
+		for (String name : objectsRemaining) {
+			object = sourceObs.get(name);
 			if (object.getTrueClassName().equals(cname)) {
-				res.put(entry.getKey(), entry.getValue());
+				res.add(name);
 			}
 		}
 		
@@ -751,12 +820,11 @@ public class State {
 		return res;
 	}
 	
-	private List <List <String>> getAllCombinationsOfObjectsString(Map<String, ObjectInstance> objects, int k){
+	private List <List <String>> getAllCombinationsOfObjectsString(List<String> objectNames, int k){
 	
-		List<String> objectNames = new ArrayList<String>(objects.keySet());
 		List <List <String>> allCombs = new ArrayList <List<String>>();
 		
-		int n = objects.size();
+		int n = objectNames.size();
 		int [] comb = this.initialComb(k, n);
 		allCombs.add(this.getListOfBindingsFromCombinationString(objectNames, comb));
 		while(nextComb(comb, k, n) == 1){
