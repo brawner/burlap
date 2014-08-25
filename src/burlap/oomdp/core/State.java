@@ -596,10 +596,10 @@ public class State {
 	public List <List <String>> getPossibleBindingsGivenParamOrderGroups(String [] paramClasses, String [] paramOrderGroups){
 		
 		List <List <String>> res = new ArrayList <List<String>>();
-		List <List <String>> currentBindingSets = new ArrayList <List<String>>();
-		List <String> uniqueRenames = this.identifyUniqueClassesInParameters(paramOrderGroups);
-		//List <String> uniqueParamClases = this.identifyUniqueClassesInParameters(paramClasses);
-		Set<String> uniqueParamClasses = new HashSet<String>(Arrays.asList(paramOrderGroups));
+		List <List <Integer>> currentBindingSets = new ArrayList <List<Integer>>();
+		Set<String> uniqueRenamesSet = new LinkedHashSet<String>(Arrays.asList(paramOrderGroups));
+		List<String> uniqueRenames = new ArrayList<String>(uniqueRenamesSet);
+		Set<String> uniqueParamClasses = new LinkedHashSet<String>(Arrays.asList(paramClasses));
 		Map <String, List <ObjectInstance>>	instanceMap = objectIndexByTrueClass;
 		
 		//first make sure we have objects for each class parameter; if not return empty list
@@ -613,17 +613,36 @@ public class State {
 				return res;
 			}
 		}
+		List<List<Integer> > resIds = new ArrayList<List<Integer > >();
+		List<ObjectInstance> objects = this.getObservableObjects();
+		List<Integer> objectIds = new ArrayList<Integer>(objects.size());
+		this.prepareCollections(objectIds, objects.size());
 		
+		this.getPossibleRenameBindingsHelper(resIds, currentBindingSets, 0, objectIds , objects, uniqueRenames, paramClasses, paramOrderGroups);
 		
-		this.getPossibleRenameBindingsHelper(res, currentBindingSets, 0, this.objectMap, uniqueRenames, paramClasses, paramOrderGroups);
-		
+		for (List<Integer> resObjectIds : resIds) {
+			List<String> resObjectNames = new ArrayList<String>(resObjectIds.size());
+			for (Integer id : resObjectIds) {
+				if (id < 0) {
+					resObjectNames.add("");
+				}
+				else {
+					ObjectInstance instance = objects.get(id);
+					resObjectNames.add(instance.getName());
+				}
+			}
+			res.add(resObjectNames);
+		}
 		
 		return res;
 		
 	}
 	
-	
-	
+	private void prepareCollections(List<Integer> objectIds, int size) {
+		for (int i = 0; i < size; i++){
+			objectIds.add(i);
+		}
+	}
 	
 	@Override
 	public String toString(){
@@ -631,91 +650,37 @@ public class State {
 	}
 	
 	
-	private void getPossibleRenameBindingsHelper(List <List <String>> res, List <List <String>> currentBindingSets, int bindIndex,
-			Map <String, ObjectInstance> remainingObjects, List <String> uniqueOrderGroups, String [] paramClasses, String [] paramOrderGroups){
-		
+	private void getPossibleRenameBindingsHelper(List <List <Integer>> res, List <List <Integer>> currentBindingSets, int bindIndex, Collection<Integer> remainingObjects,
+			List<ObjectInstance> objectLookup, List <String> uniqueOrderGroups, String [] paramClasses, String [] paramOrderGroups){
+				
 		if(bindIndex == uniqueOrderGroups.size()){
 			//base case, put it all together and add it to the result
-			res.add(this.getBindngFromCombinationSet(currentBindingSets, uniqueOrderGroups, paramOrderGroups));
+			res.add(this.getBindingFromCombinationSet(currentBindingSets, uniqueOrderGroups, paramOrderGroups));
 			return ;
 		}
-		
 		//otherwise we're in the recursive case
-		
 		String r = uniqueOrderGroups.get(bindIndex);
 		String c = this.parameterClassAssociatedWithOrderGroup(r, paramOrderGroups, paramClasses);
-		Map <String, ObjectInstance> cands = this.objectsMatchingClassMap(remainingObjects, c);
+		List <Integer> cands = this.objectsMatchingClass(remainingObjects, objectLookup, c);
 		int k = this.numOccurencesOfOrderGroup(r, paramOrderGroups);
-		List <List <String>> combs = this.getAllCombinationsOfObjectsString(cands, k);
-		for(List <String> cb : combs){
+		List <List <Integer>> combs = this.getAllCombinationsOfObjectsString(cands, k);
+		
+		
+		for(List <Integer> cb : combs){
 			
-			List <List<String>> nextBinding = new ArrayList<List<String>>(currentBindingSets);
-			//for(List <String> prevBind : currentBindingSets){
-			//	nextBinding.add(prevBind);
-			//}
+			List <List<Integer>> nextBinding = new ArrayList<List<Integer>>(currentBindingSets);
 			nextBinding.add(cb);
-			Map <String, ObjectInstance> nextObsReamining = new HashMap<String, ObjectInstance>(remainingObjects);
-			this.objectListDifferenceMap(nextObsReamining, cb);
+			
+			Collection<Integer> nextObsRemaining = new ArrayList<Integer>(remainingObjects);
+			
+			nextObsRemaining.removeAll(cb);
 			
 			//recursive step
-			this.getPossibleRenameBindingsHelper(res, nextBinding, bindIndex+1, nextObsReamining, uniqueOrderGroups, paramClasses, paramOrderGroups);
+			this.getPossibleRenameBindingsHelper(res, nextBinding, bindIndex+1, nextObsRemaining, objectLookup, uniqueOrderGroups, paramClasses, paramOrderGroups);
 			
-		}
-		
-		
-		
-	}
-	
-	private void getPossibleRenameBindingsHelper(List <List <String>> res, List <List <String>> currentBindingSets, int bindIndex,
-			List <ObjectInstance> remainingObjects, List <String> uniqueOrderGroups, String [] paramClasses, String [] paramOrderGroups){
-		
-		if(bindIndex == uniqueOrderGroups.size()){
-			//base case, put it all together and add it to the result
-			res.add(this.getBindngFromCombinationSet(currentBindingSets, uniqueOrderGroups, paramOrderGroups));
-			return ;
-		}
-		
-		//otherwise we're in the recursive case
-		
-		String r = uniqueOrderGroups.get(bindIndex);
-		String c = this.parameterClassAssociatedWithOrderGroup(r, paramOrderGroups, paramClasses);
-		List <ObjectInstance> cands = this.objectsMatchingClass(remainingObjects, c);
-		int k = this.numOccurencesOfOrderGroup(r, paramOrderGroups);
-		List <List <String>> combs = this.getAllCombinationsOfObjects(cands, k);
-		for(List <String> cb : combs){
-			
-			List <List<String>> nextBinding = new ArrayList<List<String>>(currentBindingSets.size());
-			for(List <String> prevBind : currentBindingSets){
-				nextBinding.add(prevBind);
-			}
-			nextBinding.add(cb);
-			List <ObjectInstance> nextObsReamining = this.objectListDifference(remainingObjects, cb);
-			
-			//recursive step
-			this.getPossibleRenameBindingsHelper(res, nextBinding, bindIndex+1, nextObsReamining, uniqueOrderGroups, paramClasses, paramOrderGroups);
-			
-		}
-		
-		
-		
-	}
-	
-	private void objectListDifferenceMap(Map<String, ObjectInstance> objects, Collection <String> toRemove){
-		for (String name : toRemove) {
-			objects.remove(name);
 		}
 	}
 	
-	private List <ObjectInstance> objectListDifference(List <ObjectInstance> objects, List <String> toRemove){
-		List <ObjectInstance> remaining = new ArrayList<ObjectInstance>(objects.size());
-		for(ObjectInstance oi : objects){
-			String oname = oi.getName();
-			if(!toRemove.contains(oname)){
-				remaining.add(oi);
-			}
-		}
-		return remaining;
-	}
 	
 	private int getNumOccurencesOfClassInParameters(String className, String [] paramClasses){
 		int num = 0;
@@ -726,17 +691,6 @@ public class State {
 		}
 		return num;
 	}
-	
-	private List <String> identifyUniqueClassesInParameters(String [] paramClasses){
-		List <String> unique = new ArrayList <String>();
-		for(int i = 0; i < paramClasses.length; i++){
-			if(!unique.contains(paramClasses[i])){
-				unique.add(paramClasses[i]);
-			}
-		}
-		return unique;
-	}
-	
 	
 	
 	private int numOccurencesOfOrderGroup(String rename, String [] orderGroups){
@@ -761,31 +715,14 @@ public class State {
 	}
 	
 	
-	private List <ObjectInstance> objectsMatchingClass(Collection <ObjectInstance> sourceObs, String cname){
+	private List <Integer> objectsMatchingClass(Collection<Integer> objectsRemaining, List<ObjectInstance> sourceObs, String cname){
 		
-		List <ObjectInstance> res = new ArrayList<ObjectInstance>(sourceObs.size());
-		
-		for(ObjectInstance o : sourceObs){
-			
-			if(o.getTrueClassName().equals(cname)){
-				res.add(o);
-			}
-			
-		}
-		
-		return res;
-		
-	}
-	
-	private Map <String, ObjectInstance> objectsMatchingClassMap(Map <String, ObjectInstance> sourceObs, String cname){
-		
-		Map <String, ObjectInstance> res = new HashMap<String, ObjectInstance>(sourceObs.size());
-		
+		List <Integer> res = new ArrayList<Integer>(objectsRemaining.size());
 		ObjectInstance object;
-		for(Entry<String, ObjectInstance> entry : sourceObs.entrySet()){
-			object = entry.getValue();
+		for (int id : objectsRemaining) {
+			object = sourceObs.get(id);
 			if (object.getTrueClassName().equals(cname)) {
-				res.put(entry.getKey(), entry.getValue());
+				res.add(id);
 			}
 		}
 		
@@ -801,17 +738,17 @@ public class State {
 	 * @param orderGroups the parameter order groups for each parameter
 	 * @return a binding as a list of object instance names
 	 */
-	private List <String> getBindngFromCombinationSet(List <List <String>> comboSets, List <String> orderGroupAssociatedWithSet, String [] orderGroups){
+	private List <Integer> getBindingFromCombinationSet(List <List <Integer>> comboSets, List <String> orderGroupAssociatedWithSet, String [] orderGroups){
 		
-		List <String> res = new ArrayList <String>(orderGroups.length);
+		List <Integer> res = new ArrayList <Integer>(orderGroups.length);
 		//add the necessary space first
 		for(int i = 0; i < orderGroups.length; i++){
-			res.add("");
+			res.add(-1);
 		}
 		
 		//apply the parameter bindings for each rename combination
 		for(int i = 0; i < comboSets.size(); i++){
-			List <String> renameCombo = comboSets.get(i);
+			List <Integer> renameCombo = comboSets.get(i);
 			String r = orderGroupAssociatedWithSet.get(i);
 			
 			//find the parameter indices that match this rename and set a binding accordingly
@@ -827,16 +764,15 @@ public class State {
 		return res;
 	}
 	
-	private List <List <String>> getAllCombinationsOfObjectsString(Map<String, ObjectInstance> objects, int k){
+	private List <List <Integer>> getAllCombinationsOfObjectsString(List<Integer> objectIds, int k){
 	
-		List<String> objectNames = new ArrayList<String>(objects.keySet());
-		List <List <String>> allCombs = new ArrayList <List<String>>();
+		List <List <Integer>> allCombs = new ArrayList <List<Integer>>();
 		
-		int n = objects.size();
+		int n = objectIds.size();
 		int [] comb = this.initialComb(k, n);
-		allCombs.add(this.getListOfBindingsFromCombinationString(objectNames, comb));
+		allCombs.add(this.getListOfBindingsFromCombinationString(objectIds, comb));
 		while(nextComb(comb, k, n) == 1){
-			allCombs.add(this.getListOfBindingsFromCombinationString(objectNames, comb));
+			allCombs.add(this.getListOfBindingsFromCombinationString(objectIds, comb));
 		}
 		
 		return allCombs;
@@ -858,8 +794,8 @@ public class State {
 		
 	}
 	
-	private List <String> getListOfBindingsFromCombinationString(List <String> objects, int [] comb){
-		List <String> res = new ArrayList <String>(comb.length);
+	private List <Integer> getListOfBindingsFromCombinationString(List <Integer> objects, int [] comb){
+		List <Integer> res = new ArrayList <Integer>(comb.length);
 		for(int i = 0; i < comb.length; i++){
 			res.add(objects.get(comb[i]));
 		}
