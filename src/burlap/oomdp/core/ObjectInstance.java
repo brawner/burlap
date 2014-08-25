@@ -340,46 +340,22 @@ public class ObjectInstance {
 	 */
 	public String getObjectDescription(){
 		
-		String desc = name + " (" + this.getTrueClassName() + ")\n";
-		for(Value v : values){
-			desc = desc + "\t" + v.attName() + ":\t" + v.getStringVal() + "\n";
-		}
-		
-		return desc;
-	}
-	
-	public String getObjectDescriptionFast() {
-		StringBuilder builder = new StringBuilder(name);
-		builder.append(" (");
-		builder.append(this.getTrueClassName());
-		builder.append(")\n");
-		for(Value v : values){
-			builder.append("\t");
-			builder.append(v.attName());
-			builder.append(":\t");
-			builder.append(v.getStringVal());
-			builder.append("\n");
-		}
-		return builder.toString();
-	}
-	
-	public String getObjectDescriptionWorking() {
 		// 50 was chosen arbitrarily. If it can be initialized to something more intelligent, better.
-		StringBuilder builder = new StringBuilder(50);
-		builder.append(name);
-		builder.append(" (");
-		builder.append(this.getTrueClassName());
-		builder.append(")\n");
-		for(Value v : values){
-			builder.append("\t");
-			builder.append(v.attName());
-			builder.append(":\t");
-			builder.append(v.getStringVal());
-			builder.append("\n");
-		}
-		return builder.toString();
-		
+				StringBuilder builder = new StringBuilder(50);
+				builder.append(name);
+				builder.append(" (");
+				builder.append(this.getTrueClassName());
+				builder.append(")\n");
+				for(Value v : values){
+					builder.append("\t");
+					builder.append(v.attName());
+					builder.append(":\t");
+					builder.append(v.getStringVal());
+					builder.append("\n");
+				}
+				return builder.toString();
 	}
+	
 	
 	
 	/**
