@@ -18,8 +18,8 @@ public class ObjectInstance {
 	protected ObjectClass					obClass;			//object class to which this object belongs
 	protected String						name;				//name of the object for disambiguation
 	protected List <Value>					values;				//the values for each attribute
-	
-	
+	private   String						objectDescription;  //cached value of object description;
+	private   boolean						objectDescriptionIsValid; // Decide whether to recompute description;
 	
 	
 	/**
@@ -50,7 +50,7 @@ public class ObjectInstance {
 		for(Value v : o.values){
 			values.add(v.copy());
 		}
-			
+		this.objectDescription = o.objectDescription;
 	}
 	
 	
@@ -73,7 +73,7 @@ public class ObjectInstance {
 		for(Attribute att : obClass.attributeList){
 			values.add(att.valueConstructor());
 		}
-		
+		this.objectDescriptionIsValid = false;
 	}
 	
 	
@@ -83,6 +83,7 @@ public class ObjectInstance {
 	 */
 	public void setName(String name){
 		this.name = name;
+		this.objectDescriptionIsValid = false;
 	}
 	
 	
@@ -94,6 +95,7 @@ public class ObjectInstance {
 	public void setValue(String attName, String v){
 		int ind = obClass.attributeIndex(attName);
 		values.get(ind).setValue(v);
+		this.objectDescriptionIsValid = false;
 		
 	}
 	
@@ -106,7 +108,7 @@ public class ObjectInstance {
 	public void setValue(String attName, double v){
 		int ind = obClass.attributeIndex(attName);
 		values.get(ind).setValue(v);
-		
+		this.objectDescriptionIsValid = false;
 	}
 	
 	/**
@@ -128,7 +130,7 @@ public class ObjectInstance {
 	public void setValue(String attName, boolean v){
 		int ind = obClass.attributeIndex(attName);
 		values.get(ind).setValue(v);
-		
+		this.objectDescriptionIsValid = false;
 	}
 	
 	/**
@@ -139,7 +141,7 @@ public class ObjectInstance {
 	public void setValue(String attName, int [] v){
 		int ind = obClass.attributeIndex(attName);
 		values.get(ind).setValue(v);
-		
+		this.objectDescriptionIsValid = false;
 	}
 	
 	/**
@@ -150,7 +152,7 @@ public class ObjectInstance {
 	public void setValue(String attName, double [] v){
 		int ind = obClass.attributeIndex(attName);
 		values.get(ind).setValue(v);
-		
+		this.objectDescriptionIsValid = false;
 	}
 	
 	/**
@@ -162,6 +164,7 @@ public class ObjectInstance {
 	public void addRelationalTarget(String attName, String target){
 		int ind = obClass.attributeIndex(attName);
 		values.get(ind).addRelationalTarget(target);
+		this.objectDescriptionIsValid = false;
 	}
 	
 	/**
@@ -174,6 +177,7 @@ public class ObjectInstance {
 	public void addAllRelationalTargets(String attName, Collection<String> targets) {
 		int ind = obClass.attributeIndex(attName);
 		values.get(ind).addAllRelationalTargets(targets);
+		this.objectDescriptionIsValid = false;
 	}
 	
 	/**
@@ -183,6 +187,7 @@ public class ObjectInstance {
 	public void clearRelationalTargets(String attName){
 		int ind = obClass.attributeIndex(attName);
 		values.get(ind).clearRelationTargets();
+		this.objectDescriptionIsValid = false;
 	}
 	
 	/**
@@ -193,6 +198,7 @@ public class ObjectInstance {
 	public void removeRelationalTarget(String attName, String target){
 		int ind = obClass.attributeIndex(attName);
 		values.get(ind).removeRelationalTarget(target);
+		this.objectDescriptionIsValid = false;
 	}
 	
 	
@@ -339,9 +345,12 @@ public class ObjectInstance {
 	 * @return a string representation of this object including its name and value attribute value assignment.
 	 */
 	public String getObjectDescription(){
-		
-		// 50 was chosen arbitrarily. If it can be initialized to something more intelligent, better.
 		StringBuilder builder = new StringBuilder(50);
+		this.buildObjectDescription(builder);
+		return builder.toString();
+	}
+	
+	public void buildObjectDescription(StringBuilder builder) {
 		builder.append(name);
 		builder.append(" (");
 		builder.append(this.getTrueClassName());
@@ -353,9 +362,7 @@ public class ObjectInstance {
 			builder.append(v.getStringVal());
 			builder.append("\n");
 		}
-		return builder.toString();
 	}
-	
 	
 	
 	/**

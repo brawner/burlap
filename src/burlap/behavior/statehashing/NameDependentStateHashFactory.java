@@ -27,10 +27,16 @@ public class NameDependentStateHashFactory implements StateHashFactory {
 	protected List <String>				objectNameOrder;
 	protected Set <String>				objectNames;
 	
+	protected List<Integer>				objectIdsOrder;
+	protected Set<Integer>				objectIds;
+	
 	
 	public NameDependentStateHashFactory(){
 		objectNameOrder = new ArrayList<String>();
 		objectNames = new HashSet<String>();
+		
+		objectIdsOrder = new ArrayList<Integer>();
+		objectIds = new HashSet<Integer>();
 	}
 	
 	@Override
@@ -47,12 +53,25 @@ public class NameDependentStateHashFactory implements StateHashFactory {
 		addNewObjectNames(s, s.getObservableObjects());
 	}
 	
+	protected void addNewObjectIds(State s) {
+		addNewObjectIds(s, s.getObservableObjectIDs());
+	}
+	
 	protected void addNewObjectNames(State s, List<ObjectInstance> obs){
 		//List <ObjectInstance> obs = s.getObservableObjects();
 		for(ObjectInstance ob : obs){
 			String name = ob.getName();
 			if(objectNames.add(name)){
 				objectNameOrder.add(name);
+			}
+		}
+	}
+	
+	protected void addNewObjectIds(State s, List<Integer> obs){
+		//List <ObjectInstance> obs = s.getObservableObjects();
+		for(Integer id : obs){
+			if(objectIds.add(id)){
+				objectIdsOrder.add(id);
 			}
 		}
 	}
@@ -67,13 +86,13 @@ public class NameDependentStateHashFactory implements StateHashFactory {
 		@Override
 		public void computeHashCode() {
 			
-			StringBuffer buf = new StringBuffer();
+			StringBuilder builder = new StringBuilder();
 			
 			boolean completeMatch = true;
-			for(String oname : NameDependentStateHashFactory.this.objectNameOrder){
-				ObjectInstance o = this.s.getObject(oname);
+			for(Integer oid : NameDependentStateHashFactory.this.objectIdsOrder){
+				ObjectInstance o = this.s.getObject(oid);
 				if(o != null){
-					buf.append(o.getObjectDescription());
+					o.buildObjectDescription(builder);
 				}
 				else{
 					completeMatch = false;
@@ -81,17 +100,17 @@ public class NameDependentStateHashFactory implements StateHashFactory {
 			}
 			
 			if(!completeMatch){
-				int start = NameDependentStateHashFactory.this.objectNameOrder.size();
-				NameDependentStateHashFactory.this.addNewObjectNames(this.s);
-				for(int i = start; i < NameDependentStateHashFactory.this.objectNameOrder.size(); i++){
-					ObjectInstance o = this.s.getObject(NameDependentStateHashFactory.this.objectNameOrder.get(i));
+				int start = NameDependentStateHashFactory.this.objectIdsOrder.size();
+				NameDependentStateHashFactory.this.addNewObjectIds(this.s);
+				for(int i = start; i < NameDependentStateHashFactory.this.objectIdsOrder.size(); i++){
+					ObjectInstance o = this.s.getObject(NameDependentStateHashFactory.this.objectIdsOrder.get(i));
 					if(o != null){
-						buf.append(o.getObjectDescription());
+						o.buildObjectDescription(builder);
 					}
 				}
 			}
 			
-			this.hashCode = buf.toString().hashCode();
+			this.hashCode = builder.toString().hashCode();
 			this.needToRecomputeHashCode = false;
 			
 		}
@@ -106,6 +125,10 @@ public class NameDependentStateHashFactory implements StateHashFactory {
 				return false;
 			}
 			StateHashTuple o = (StateHashTuple)other;
+			
+			if (this.s.numObservableObjects() != o.s.numObservableObjects()) {
+				return false;
+			}
 			
 			List <ObjectInstance> obs = this.s.getObservableObjects();
 			for(ObjectInstance ob : obs){

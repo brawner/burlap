@@ -15,6 +15,11 @@ import burlap.oomdp.singleagent.GroundedAction;
 public class State {
 
 	
+	private List<ObjectInstance>							objectInstancesMasterList;
+	private Map<String, Integer>								objectNameIdLookup;
+	private List<Integer>									observableObjectIds;
+	
+	private int												currentValidID;
 	/**
 	 * List of observable object instances that define the state
 	 */
@@ -72,6 +77,10 @@ public class State {
 	
 	protected void initDataStructures(){
 		
+		currentValidID = 0;
+		objectInstancesMasterList = new ArrayList<ObjectInstance>();
+		objectNameIdLookup = new HashMap<String, Integer>();
+		observableObjectIds = new ArrayList<Integer>();
 		objectInstances = new ArrayList <ObjectInstance>();
 		hiddenObjectInstances = new ArrayList <ObjectInstance>();
 		objectMap = new HashMap <String, ObjectInstance>();
@@ -79,7 +88,9 @@ public class State {
 		objectIndexByTrueClass = new HashMap <String, List <ObjectInstance>>();
 	}
 	
-	
+	private int generateUniqueID() {
+		return currentValidID++;
+	}
 	/**
 	 * Adds object instance o to this state.
 	 * @param o the object instance to be added to this state.
@@ -91,7 +102,10 @@ public class State {
 		if(objectMap.containsKey(oname)){
 			return ; //don't add an object that conflicts with another object of the same name
 		}
+		int objectId = this.generateUniqueID();
 		
+		objectInstancesMasterList.add(o);
+		objectNameIdLookup.put(o.getName(), objectId);
 		
 		objectMap.put(oname, o);
 		
@@ -101,6 +115,7 @@ public class State {
 		}
 		else{
 			objectInstances.add(o);
+			observableObjectIds.add(objectId);
 		}
 		
 		
@@ -152,11 +167,16 @@ public class State {
 			return ; //make sure we're removing something that actually exists in this state!
 		}
 		
+		int id = objectNameIdLookup.get(oname);
+		objectInstancesMasterList.set(id, null);
+		
+		
 		if(o.getObjectClass().hidden){
 			hiddenObjectInstances.remove(o);
 		}
 		else{
 			objectInstances.remove(o);
+			observableObjectIds.remove(id);
 		}
 		
 		objectMap.remove(oname);
@@ -193,10 +213,16 @@ public class State {
 	 * @param newName the new name of the object instance
 	 */
 	public void renameObject(String originalName, String newName){
-		ObjectInstance o = objectMap.get(originalName);
+		ObjectInstance o = objectMap.remove(originalName);
+		if (o == null) {
+			return;
+		}
+		
 		o.setName(newName);
-		objectMap.remove(originalName);
 		objectMap.put(newName, o);
+		int objectId = objectNameIdLookup.remove(originalName);
+		objectNameIdLookup.put(newName, objectId);
+		
 	}
 	
 	
@@ -210,6 +236,8 @@ public class State {
 		o.setName(newName);
 		objectMap.remove(originalName);
 		objectMap.put(newName, o);
+		int objectId = objectNameIdLookup.remove(originalName);
+		objectNameIdLookup.put(newName, objectId);
 	}
 	
 	
@@ -353,6 +381,10 @@ public class State {
 		return objectMap.get(oname);
 	}
 	
+	public ObjectInstance getObject(int id) {
+		return objectInstances.get(id);
+	}
+	
 	/**
 	 * Returns the observable object instance indexed at position i
 	 * @param i the index of the observable object instance to return
@@ -385,6 +417,10 @@ public class State {
 	 */
 	public List <ObjectInstance> getObservableObjects(){
 		return new ArrayList <ObjectInstance>(objectInstances);
+	}
+	
+	public List<Integer> getObservableObjectIDs() {
+		return new ArrayList<Integer>(observableObjectIds);
 	}
 	
 	
@@ -457,13 +493,13 @@ public class State {
 	 * @return a string representation of this state using only observable object instances.
 	 */
 	public String getStateDescription(){
-		
-		String desc = "";
+		StringBuilder builder = new StringBuilder();
 		for(ObjectInstance o : objectInstances){
-			desc = desc + o.getObjectDescription() + "\n";
+			o.buildObjectDescription(builder);
+			builder.append("\n");
 		}
 		
-		return desc;
+		return builder.toString();
 	
 	}
 	
@@ -473,17 +509,19 @@ public class State {
 	 * @return a string representation of this state using observable and hidden object instances.
 	 */
 	public String getCompleteStateDescription(){
+		StringBuilder builder = new StringBuilder();
 		
-		String desc = "";
 		for(ObjectInstance o : objectInstances){
-			desc = desc + o.getObjectDescription() + "\n";
+			o.buildObjectDescription(builder);
+			builder.append("\n");
 		}
 		for(ObjectInstance o : hiddenObjectInstances){
-			desc = desc + o.getObjectDescription() + "\n";
+			o.buildObjectDescription(builder);
+			builder.append("\n");
 		}
 		
 		
-		return desc;
+		return builder.toString();
 		
 	}
 	
@@ -681,74 +719,6 @@ public class State {
 		}
 	}
 
-	
-
-	private void getPossibleRenameBindingsHelperProfiled(List <List <Integer>> res, List <List <Integer>> currentBindingSets, int bindIndex, Collection<Integer> remainingObjects,
-			List<ObjectInstance> objectLookup, List <String> uniqueOrderGroups, String [] paramClasses, String [] paramOrderGroups){
-				
-		long start, end;
-		
-		long[] times = new long[10];
-		
-		
-		start = System.nanoTime();
-		if(bindIndex == uniqueOrderGroups.size()){
-			//base case, put it all together and add it to the result
-			res.add(this.getBindingFromCombinationSet(currentBindingSets, uniqueOrderGroups, paramOrderGroups));
-			return ;
-		}
-		end = System.nanoTime();
-		times[0] += end - start;
-		
-		//otherwise we're in the recursive case
-		start = System.nanoTime();
-		String r = uniqueOrderGroups.get(bindIndex);
-		end  = System.nanoTime();
-		times[1] += end - start;
-		
-		start = System.nanoTime();
-		String c = this.parameterClassAssociatedWithOrderGroup(r, paramOrderGroups, paramClasses);
-		List <Integer> cands = this.objectsMatchingClass(remainingObjects, objectLookup, c);
-		int k = this.numOccurencesOfOrderGroup(r, paramOrderGroups);
-		end = System.nanoTime();
-		times[2] += end - start;
-		
-		start = System.nanoTime();
-		List <List <Integer>> combs = this.getAllCombinationsOfObjectsString(cands, k);
-		end = System.nanoTime();
-		times[3] += end - start;
-		
-		
-		for(List <Integer> cb : combs){
-			
-			start = System.nanoTime();
-			List <List<Integer>> nextBinding = new ArrayList<List<Integer>>(currentBindingSets);
-			nextBinding.add(cb);
-			end = System.nanoTime();
-			times[4] += end - start;
-			//for(List <String> prevBind : currentBindingSets){
-			//	nextBinding.add(prevBind);
-			//}
-			
-			start = System.nanoTime();
-			Collection<Integer> nextObsRemaining = new ArrayList<Integer>(remainingObjects);
-			end = System.nanoTime();
-			times[5] += end - start;
-			
-			start = System.nanoTime();
-			nextObsRemaining.removeAll(cb);
-			end = System.nanoTime();
-			times[6] += end - start;
-			
-			//recursive step
-			this.getPossibleRenameBindingsHelper(res, nextBinding, bindIndex+1, nextObsRemaining, objectLookup, uniqueOrderGroups, paramClasses, paramOrderGroups);
-			
-		}
-		for (long time : times) {
-			System.out.print(Long.toString(time) + ", " );
-		}
-		System.out.print("\n");
-	}
 	
 	private int getNumOccurencesOfClassInParameters(String className, String [] paramClasses){
 		int num = 0;
