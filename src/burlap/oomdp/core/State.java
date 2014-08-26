@@ -456,14 +456,12 @@ public class State {
 	 * @return a string representation of this state using only observable object instances.
 	 */
 	public String getStateDescription(){
-		
-		String desc = "";
+		StringBuilder builder = new StringBuilder(100);
 		for(ObjectInstance o : objectInstances){
-			desc = desc + o.getObjectDescription() + "\n";
+			o.buildObjectDescription(builder);
 		}
 		
-		return desc;
-	
+		return builder.toString();
 	}
 	
 	
@@ -473,17 +471,15 @@ public class State {
 	 */
 	public String getCompleteStateDescription(){
 		
-		String desc = "";
+		StringBuilder builder = new StringBuilder(100);
 		for(ObjectInstance o : objectInstances){
-			desc = desc + o.getObjectDescription() + "\n";
+			o.buildObjectDescription(builder).append("\n");
 		}
 		for(ObjectInstance o : hiddenObjectInstances){
-			desc = desc + o.getObjectDescription() + "\n";
+			o.buildObjectDescription(builder).append("\n");
 		}
 		
-		
-		return desc;
-		
+		return builder.toString();
 	}
 	
 	

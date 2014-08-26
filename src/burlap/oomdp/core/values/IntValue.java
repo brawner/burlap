@@ -101,10 +101,11 @@ public class IntValue extends Value {
 	public double getRealVal() {
 		throw new UnsupportedOperationException("Value is Int, cannot return real value");
 	}
-
-	@Override
-	public String getStringVal() {
-		return "" + this.intVal;
+	
+	@Override 
+	public StringBuilder buildStringVal(StringBuilder builder) {
+		builder.append(this.intVal);
+		return builder;
 	}
 
 	@Override

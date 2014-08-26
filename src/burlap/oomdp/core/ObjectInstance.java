@@ -339,14 +339,17 @@ public class ObjectInstance {
 	 * @return a string representation of this object including its name and value attribute value assignment.
 	 */
 	public String getObjectDescription(){
-		
-		String desc = name + " (" + this.getTrueClassName() + ")\n";
-		for(Value v : values){
-			desc = desc + "\t" + v.attName() + ":\t" + v.getStringVal() + "\n";
-		}
-		
-		return desc;
+		StringBuilder builder = new StringBuilder(50);
+		this.buildObjectDescription(builder);
+		return builder.toString();
+	}
 	
+	public StringBuilder buildObjectDescription(StringBuilder builder) {
+		builder.append(name).append(" (").append(this.getTrueClassName()).append(")\n");
+		for(Value v : values){
+			builder.append("\t").append(v.attName()).append(":\t").append(v.getStringVal()).append("\n");
+		 }
+		return builder;
 	}
 	
 	

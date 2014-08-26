@@ -86,15 +86,14 @@ public class IntArrayValue extends Value {
 	}
 
 	@Override
-	public String getStringVal() {
-		StringBuffer buf = new StringBuffer();
+	public StringBuilder buildStringVal(StringBuilder builder){
 		for(int i = 0; i < this.intArray.length; i++){
 			if(i > 0){
-				buf.append(",");
+				builder.append(",");
 			}
-			buf.append(this.intArray[i]);
+			builder.append(this.intArray[i]);
 		}
-		return buf.toString();
+		return builder;
 	}
 
 	@Override

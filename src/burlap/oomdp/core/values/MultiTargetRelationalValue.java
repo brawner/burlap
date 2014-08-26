@@ -107,19 +107,17 @@ public class MultiTargetRelationalValue extends Value {
 		return this.targetObjects;
 	}
 	
-
 	@Override
-	public String getStringVal() {
-		StringBuffer buf = new StringBuffer();
+	public StringBuilder buildStringVal(StringBuilder builder) {
 		boolean didFirst = false;
 		for(String t : this.targetObjects){
 			if(didFirst){
-				buf.append(";");
+				builder.append(";");
 			}
-			buf.append(t);
+			builder.append(t);
 			didFirst = true;
 		}
-		return buf.toString();
+		return builder;
 	}
 
 	@Override

@@ -157,7 +157,12 @@ public abstract class Value {
 	 * Returns the string value of this Value object
 	 * @return the string value of this Value object
 	 */
-	public abstract String getStringVal();
+	public String getStringVal() {
+		StringBuilder builder = new StringBuilder();
+		return this.buildStringVal(builder).toString();
+	}
+	
+	public abstract StringBuilder buildStringVal(StringBuilder builder);
 	
 	/**
 	 * Returns the ordered set of all relational targets of this object. The set will be empty

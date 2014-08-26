@@ -94,8 +94,9 @@ public class StringValue extends Value {
 	}
 
 	@Override
-	public String getStringVal() {
-		return this.stringVal;
+	public StringBuilder buildStringVal(StringBuilder builder) {
+		builder.append(this.stringVal);
+		return builder;
 	}
 
 	@Override

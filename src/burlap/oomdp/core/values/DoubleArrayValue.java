@@ -86,16 +86,16 @@ public class DoubleArrayValue extends Value{
 	}
 
 	@Override
-	public String getStringVal() {
-		StringBuffer buf = new StringBuffer();
+	public StringBuilder buildStringVal(StringBuilder builder){
 		for(int i = 0; i < this.doubleArray.length; i++){
 			if(i > 0){
-				buf.append(",");
+				builder.append(",");
 			}
-			buf.append(this.doubleArray[i]);
+			builder.append(this.doubleArray[i]);
 		}
-		return buf.toString();
+		return builder;
 	}
+
 
 	@Override
 	public Set<String> getAllRelationalTargets() {

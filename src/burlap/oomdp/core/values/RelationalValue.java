@@ -106,10 +106,11 @@ public class RelationalValue extends Value {
 		res.add(this.target);
 		return res;
 	}
-
+	
 	@Override
-	public String getStringVal() {
-		return this.target;
+	public StringBuilder buildStringVal(StringBuilder builder) {
+		builder.append(this.target);
+		return builder;
 	}
 
 	@Override

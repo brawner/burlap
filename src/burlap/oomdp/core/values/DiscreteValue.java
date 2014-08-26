@@ -107,11 +107,12 @@ public class DiscreteValue extends Value{
 	}
 	
 	@Override
-	public String getStringVal(){
+	public StringBuilder buildStringVal(StringBuilder builder){
 		if(this.discVal == -1){
 			throw new UnsetValueException();
 		}
-		return attribute.discValues.get(discVal);
+		builder.append(attribute.discValues.get(discVal));
+		return builder;
 	}
 	
 	@Override

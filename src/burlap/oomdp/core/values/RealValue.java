@@ -98,11 +98,12 @@ public class RealValue extends Value {
 	}
 	
 	@Override
-	public String getStringVal(){
+	public StringBuilder buildStringVal(StringBuilder builder) {
 		if(Double.isNaN(this.realVal)){
 			throw new UnsetValueException();
 		}
-		return String.valueOf(this.realVal);
+		builder.append(this.realVal);
+		return builder;
 	}
 	
 	@Override
