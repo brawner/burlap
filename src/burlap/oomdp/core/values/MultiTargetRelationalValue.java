@@ -144,14 +144,7 @@ public class MultiTargetRelationalValue extends Value {
 			return false;
 		}
 		
-		for(String t : this.targetObjects){
-			if(!op.targetObjects.contains(t)){
-				return false;
-			}
-		}
-		
-		return true;
-		
+		return this.targetObjects.equals(op.targetObjects);
 	}
 
 
