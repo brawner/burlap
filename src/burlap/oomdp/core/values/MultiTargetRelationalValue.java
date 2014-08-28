@@ -1,7 +1,9 @@
 package burlap.oomdp.core.values;
 
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.Set;
+import java.util.SortedSet;
 import java.util.TreeSet;
 
 import burlap.oomdp.core.Attribute;
@@ -144,7 +146,21 @@ public class MultiTargetRelationalValue extends Value {
 			return false;
 		}
 		
-		return this.targetObjects.equals(op.targetObjects);
+		return this.sortedSetEquals((SortedSet)this.targetObjects, (SortedSet)op.targetObjects);
+	}
+	
+	private boolean sortedSetEquals(SortedSet<String> lhs, SortedSet<String> rhs) {
+		Iterator<String> lhsIt = lhs.iterator();
+		Iterator<String> rhsIt = rhs.iterator();
+		
+		while (lhsIt.hasNext()) {
+			String lhsStr = lhsIt.next(),
+				   rhsStr = rhsIt.next();
+			if (!lhsStr.equals(rhsStr)) {
+				return false;
+			}
+		}
+		return true;
 	}
 
 
