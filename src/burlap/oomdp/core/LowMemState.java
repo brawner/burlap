@@ -11,33 +11,9 @@ import burlap.oomdp.singleagent.GroundedAction;
  * @author James MacGlashan
  *
  */
-public class State {
+public class LowMemState extends State{
 
-	
-	/**
-	 * List of observable object instances that define the state
-	 */
-	protected List <ObjectInstance>							objectInstances;
-	
-	/**
-	 * List of hidden object instances that facilitate domain dynamics and infer observable values
-	 */
-	protected List <ObjectInstance>							hiddenObjectInstances;
-	
-	/**
-	 * Map from object names to their instances
-	 */
-	protected Map <String, ObjectInstance>					objectMap;
-	
-	
-	/**
-	 * Map of object instances organized by class name
-	 */
-	protected Map <String, List <ObjectInstance>>			objectIndexByTrueClass;
-
-	
-	
-	public State(){
+	public LowMemState(){
 		this.initDataStructures();
 	}
 	
@@ -46,7 +22,7 @@ public class State {
 	 * Initializes this state as a deep copy of the object instances in the provided source state s
 	 * @param s the source state from which this state will be initialized.
 	 */
-	public State(State s){
+	public LowMemState(LowMemState s){
 		
 		
 		this.initDataStructures();
@@ -65,8 +41,9 @@ public class State {
 	 * Returns a deep copy of this state.
 	 * @return a deep copy of this state.
 	 */
-	public State copy(){
-		return new State(this);
+	@Override
+	public LowMemState copy(){
+		return new LowMemState(this);
 	}
 	
 	
@@ -76,7 +53,8 @@ public class State {
 	 * @param deepCopyObjectNames the names of the objects to be deep copied.
 	 * @return a new state that is a mix of a shallow and deep copy of this state.
 	 */
-	public State semiDeepCopy(String...deepCopyObjectNames){
+	@Override
+	public LowMemState semiDeepCopy(String...deepCopyObjectNames){
 		Set<ObjectInstance> deepCopyObjectSet = new HashSet<ObjectInstance>(deepCopyObjectNames.length);
 		for(String n : deepCopyObjectNames){
 			deepCopyObjectSet.add(this.getObject(n));
@@ -91,7 +69,8 @@ public class State {
 	 * @param deepCopyObjects the objects to be deep copied
 	 * @return a new state that is a mix of a shallow and deep copy of this state.
 	 */
-	public State semiDeepCopy(ObjectInstance...deepCopyObjects){
+	@Override
+	public LowMemState semiDeepCopy(ObjectInstance...deepCopyObjects){
 		
 		Set<ObjectInstance> deepCopyObjectSet = new HashSet<ObjectInstance>(deepCopyObjects.length);
 		for(ObjectInstance d : deepCopyObjects){
@@ -108,9 +87,14 @@ public class State {
 	 * @param deepCopyObjects the objects to be deep copied
 	 * @return a new state that is a mix of a shallow and deep copy of this state.
 	 */
-	public State semiDeepCopy(Set<ObjectInstance> deepCopyObjects){
+	@Override
+	public LowMemState semiDeepCopy(Set<ObjectInstance> deepCopyObjects){
 		
-		State s = new State();
+		LowMemState s = new LowMemState();
+		
+		objectMap = new HashMap <String, ObjectInstance>();
+		objectIndexByTrueClass = new HashMap <String, List <ObjectInstance>>();
+		
 		for(ObjectInstance o : this.objectInstances){
 			if(deepCopyObjects.contains(o)){
 				s.addObject(o.copy());
@@ -132,14 +116,24 @@ public class State {
 		return s;
 	}
 	
-	
+	@Override
 	protected void initDataStructures(){
 		
 		objectInstances = new ArrayList <ObjectInstance>();
 		hiddenObjectInstances = new ArrayList <ObjectInstance>();
-		objectMap = new HashMap <String, ObjectInstance>();
+		this.objectIndexByTrueClass = new HashMap<String, List<ObjectInstance>>();
+		this.objectMap = null;
+	}
+	
+	protected void initObjectMap() {
+		this.objectMap = new HashMap<String, ObjectInstance>();
+		for (ObjectInstance obj : this.objectInstances) {
+			this.objectMap.put(obj.getName(), obj);
+		}
 		
-		objectIndexByTrueClass = new HashMap <String, List <ObjectInstance>>();
+		for (ObjectInstance obj : this.hiddenObjectInstances) {
+			this.objectMap.put(obj.getName(), obj);
+		}
 	}
 	
 	
@@ -147,17 +141,16 @@ public class State {
 	 * Adds object instance o to this state.
 	 * @param o the object instance to be added to this state.
 	 */
+	@Override
 	public void addObject(ObjectInstance o){
 		
 		String oname = o.getName();
 		
-		if(objectMap.containsKey(oname)){
-			return ; //don't add an object that conflicts with another object of the same name
-		}
-		
-		
-		objectMap.put(oname, o);
-		
+		for (ObjectInstance object : this.objectInstances) {
+			if (object.getName().equals(oname)) {
+				return;
+			}
+		}		
 		
 		if(o.getObjectClass().hidden){
 			hiddenObjectInstances.add(o);
@@ -166,28 +159,19 @@ public class State {
 			objectInstances.add(o);
 		}
 		
-		
-		this.addObjectClassIndexing(o);
-		
-		
 	}
 	
-	private void addObjectClassIndexing(ObjectInstance o){
-		
-		String otclass = o.getTrueClassName();
-		
-		//manage true indexing
-		if(objectIndexByTrueClass.containsKey(otclass)){
-			objectIndexByTrueClass.get(otclass).add(o);
+	private boolean removeObjectFromList(List<ObjectInstance> list, String oname) {
+		Iterator<ObjectInstance> it = list.iterator();
+		ObjectInstance obj;
+		while (it.hasNext()) {
+			obj  = it.next();
+			if (obj.getName().equals(oname)) {
+				it.remove();
+				return true;
+			}
 		}
-		else{
-			
-			ArrayList <ObjectInstance> classList = new ArrayList <ObjectInstance>();
-			classList.add(o);
-			objectIndexByTrueClass.put(otclass, classList);
-			
-		}
-		
+		return false;
 	}
 	
 	
@@ -195,8 +179,11 @@ public class State {
 	 * Removes the object instance with the name oname from this state.
 	 * @param oname the name of the object instance to remove.
 	 */
+	@Override
 	public void removeObject(String oname){
-		this.removeObject(objectMap.get(oname));
+		if (!this.removeObjectFromList(this.objectInstances, oname)) {
+			this.removeObjectFromList(this.hiddenObjectInstances, oname);
+		}
 	}
 	
 	
@@ -204,62 +191,39 @@ public class State {
 	 * Removes the object instance o from this state.
 	 * @param o the object instance to remove from this state.
 	 */
+	@Override
 	public void removeObject(ObjectInstance o){
 		if(o == null){
 			return ;
 		}
 		
 		String oname = o.getName();
-		
-		if(!objectMap.containsKey(oname)){
-			return ; //make sure we're removing something that actually exists in this state!
-		}
-		
-		if(o.getObjectClass().hidden){
-			hiddenObjectInstances.remove(o);
-		}
-		else{
-			objectInstances.remove(o);
-		}
-		
-		objectMap.remove(oname);
-		
-		this.removeObjectClassIndexing(o);
-		
+		this.removeObject(oname);
 	}
-	
-	
-	
-	private void removeObjectClassIndexing(ObjectInstance o){
-		
-		
-		String otclass = o.getTrueClassName();
-		List <ObjectInstance> classTList = objectIndexByTrueClass.get(otclass);
-		
-		//if this index has more than one entry, then we can just remove from it and be done
-		if(classTList.size() > 1){
-			classTList.remove(o);
+
+	private boolean renameObjectInList(List<ObjectInstance> list, String originalName, String newName) {
+		Iterator<ObjectInstance> it = list.iterator();
+		ObjectInstance obj;
+		while (it.hasNext()) {
+			obj  = it.next();
+			if (obj.getName().equals(originalName)) {
+				obj.setName(newName);
+				return true;
+			}
 		}
-		else{
-			//otherwise we have to remove class entries for it
-			objectIndexByTrueClass.remove(otclass);
-		}
-		
-		
-		
+		return false;
 	}
-	
 	
 	/**
 	 * Renames the identifier for the object instance currently named originalName with the name newName.
 	 * @param originalName the original name of the object instance to be renamed in this state
 	 * @param newName the new name of the object instance
 	 */
+	@Override
 	public void renameObject(String originalName, String newName){
-		ObjectInstance o = objectMap.get(originalName);
-		o.setName(newName);
-		objectMap.remove(originalName);
-		objectMap.put(newName, o);
+		if (!this.renameObjectInList(this.objectInstances, originalName, newName)) {
+			this.renameObjectInList(this.hiddenObjectInstances, originalName, newName);
+		}
 	}
 	
 	
@@ -268,11 +232,10 @@ public class State {
 	 * @param o the object instance to rename in this state
 	 * @param newName the new name of the object instance
 	 */
+	@Override
 	public void renameObject(ObjectInstance o, String newName){
 		String originalName = o.getName();
-		o.setName(newName);
-		objectMap.remove(originalName);
-		objectMap.put(newName, o);
+		this.renameObject(originalName, newName);
 	}
 	
 	
@@ -287,7 +250,7 @@ public class State {
 	 * @param enforceStateExactness whether to require that states are identical to return a matching
 	 * @return a matching from this receiving state's objects to objects in so that have identical values. 
 	 */
-	public Map <String, String> getObjectMatchingTo(State so, boolean enforceStateExactness){
+	public Map <String, String> getObjectMatchingTo(LowMemState so, boolean enforceStateExactness){
 		
 		Map <String, String> matching = new HashMap<String, String>();
 		
@@ -338,11 +301,11 @@ public class State {
 			return true;
 		}
 		
-		if(!(other instanceof State)){
+		if(!(other instanceof LowMemState)){
 			return false;
 		}
 		
-		State so = (State)other;
+		LowMemState so = (LowMemState)other;
 		
 		if(this.numTotalObjets() != so.numTotalObjets()){
 			return false;
@@ -406,15 +369,19 @@ public class State {
 		return hiddenObjectInstances.size();
 	}
 	
-	
 	/**
 	 * Returns the object in this state with the name oname
 	 * @param oname the name of the object instance to return
 	 * @return the object instance with the name oname or null if there is no object in this state named oname
 	 */
 	public ObjectInstance getObject(String oname){
+		if (this.objectMap == null) {
+			this.initObjectMap();
+		}
 		return objectMap.get(oname);
 	}
+	
+	
 	
 	/**
 	 * Returns the observable object instance indexed at position i
@@ -553,7 +520,7 @@ public class State {
 	
 	
 	/**
-	 * Deprecated; use the {@link Action} class' {@link Action#getAllApplicableGroundedActions(State)} method instead.
+	 * Deprecated; use the {@link Action} class' {@link Action#getAllApplicableGroundedActions(LowMemState)} method instead.
 	 * Returns all GroundedAction objects for the source action a in this state.
 	 * @param a the action from which to generate GroundedAction objects.
 	 * @return all GroundedAction objects for the source action a in this state.
@@ -585,7 +552,7 @@ public class State {
 	
 	
 	/**
-	 * Deprecated; use the {@link Action} class' {@link Action#getAllApplicableGroundedActionsFromActionList(List, State)} method instead.
+	 * Deprecated; use the {@link Action} class' {@link Action#getAllApplicableGroundedActionsFromActionList(List, LowMemState)} method instead.
 	 * Returns a list of GroundedAction objects for all grounded actions that can be generated from the provided list of actions.
 	 * @param actions the list of actions from which to generate GroudnedAction objects.
 	 * @return a list of GroundedAction objects for all grounded actions that can be generated from the provided list of actions.
@@ -602,7 +569,7 @@ public class State {
 	
 	
 	/**
-	 * Deprecated; use the {@link PropositionalFunction} class' {@link PropositionalFunction#getAllGroundedPropsForState(State)} method instead.
+	 * Deprecated; use the {@link PropositionalFunction} class' {@link PropositionalFunction#getAllGroundedPropsForState(LowMemState)} method instead.
 	 * Returns all GroundedProp objects for the source propositional function pf in this state.
 	 * @param pf the propositional function from which to generate GroundedProp objects.
 	 * @return all GroundedProp objects for the source propositional function pf in this state.
@@ -630,7 +597,7 @@ public class State {
 	
 	
 	/**
-	 * Deprecated; use the {@link PropositionalFunction} class' {@link PropositionalFunction#somePFGroundingIsTrue(State)} method instead.
+	 * Deprecated; use the {@link PropositionalFunction} class' {@link PropositionalFunction#somePFGroundingIsTrue(LowMemState)} method instead.
 	 * Returns whether some GroundedProp of pf is true in this state
 	 * @param pf the propositional function to check
 	 * @return true if some GroundedProp of pf is true in this state; false otherwise
@@ -646,7 +613,6 @@ public class State {
 		
 		return false;
 	}
-	
 	
 	/**
 	 * Given an array of parameter object classes and an array of their corresponding parameter order groups,
