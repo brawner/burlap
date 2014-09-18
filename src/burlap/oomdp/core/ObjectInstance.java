@@ -423,6 +423,10 @@ public class ObjectInstance {
 	
 	
 	public boolean equals(Object obj){
+		if (this == obj) {
+			return true;
+		}
+		
 		ObjectInstance op = (ObjectInstance)obj;
 		if(op.name.equals(name))
 			return true;
@@ -436,7 +440,9 @@ public class ObjectInstance {
 	 * @return true if this object instance and obj have identical value assignments; false otherwise.
 	 */
 	public boolean valueEquals(ObjectInstance obj){
-	
+		if (this == obj) {
+			return true;
+		}
 		if(!obClass.name.equals(obj.obClass.name)){
 			return false;
 		}
