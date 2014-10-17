@@ -194,7 +194,7 @@ public class ValueIteration extends ValueFunctionPlanner{
 			mapToStateIndex.put(sh, sh);
 			
 			//do not need to expand from terminal states if set to prune
-			if(this.tf.isTerminal(sh.s) && stopReachabilityFromTerminalStates){
+			if(this.tf.isTerminal(sh.getState()) && stopReachabilityFromTerminalStates){
 				continue;
 			}
 			

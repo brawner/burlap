@@ -126,13 +126,13 @@ public class DiscretizingStateHashFactory implements StateHashFactory {
 		}
 
 		@Override
-		public void computeHashCode() {
+		public int computeHashCode() {
 			
 			List <String> objectClasses = this.getOrderedClasses();
 			int totalVol = 1;
-			hashCode = 0;
+			int hashCode = 0;
 			for(String oclass : objectClasses){
-				List <ObjectInstance> obs = s.getObjectsOfTrueClass(oclass);
+				List <ObjectInstance> obs = getState().getObjectsOfTrueClass(oclass);
 				ObjectClass oc = obs.get(0).getObjectClass();
 				int vol = this.computeVolumeForClass(oc);
 				
@@ -150,8 +150,8 @@ public class DiscretizingStateHashFactory implements StateHashFactory {
 				}
 				
 			}
-			
-			needToRecomputeHashCode = false;
+			return hashCode;
+			//needToRecomputeHashCode = false;
 			
 		}
 		
@@ -258,7 +258,7 @@ public class DiscretizingStateHashFactory implements StateHashFactory {
 		}
 		
 		private List <String> getOrderedClasses(){
-			List <String> objectClasses = new ArrayList<String>(s.getObjectClassesPresent());
+			List <String> objectClasses = new ArrayList<String>(getState().getObjectClassesPresent());
 			Collections.sort(objectClasses);
 			return objectClasses;
 		}
@@ -279,10 +279,10 @@ public class DiscretizingStateHashFactory implements StateHashFactory {
 			StateHashTuple that = (StateHashTuple)other;
 			
 			Set <String> classesToCheck = new HashSet<String>();
-			for(ObjectInstance o : that.s.getAllObjects()){
+			for(ObjectInstance o : that.getState().getAllObjects()){
 				classesToCheck.add(o.getObjectClass().name);
 			}
-			for(ObjectInstance o : this.s.getAllObjects()){
+			for(ObjectInstance o : this.getState().getAllObjects()){
 				classesToCheck.add(o.getObjectClass().name);
 			}
 			
@@ -290,8 +290,8 @@ public class DiscretizingStateHashFactory implements StateHashFactory {
 			for(String cname : classesToCheck){
 				
 				
-				List <ObjectInstance> theseObjects = this.s.getObjectsOfTrueClass(cname);
-				List <ObjectInstance> thoseObjects = that.s.getObjectsOfTrueClass(cname);
+				List <ObjectInstance> theseObjects = this.getState().getObjectsOfTrueClass(cname);
+				List <ObjectInstance> thoseObjects = that.getState().getObjectsOfTrueClass(cname);
 				
 				if(theseObjects.size() != thoseObjects.size()){
 					return false;

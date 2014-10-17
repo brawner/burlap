@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Scanner;
 
 import burlap.oomdp.core.AbstractGroundedAction;
@@ -104,7 +103,7 @@ public class AffordanceDelegate {
 				
 				// TODO: Change to parsing a logical expression (instead of assuming a single pf)
 				String pfName = info[0];
-				String goalName = info[1];
+				//String goalName = info[1];
 				
 				// -- Create Precondition -- 
 				PropositionalFunction preCondPF = d.getPropFunction(pfName);

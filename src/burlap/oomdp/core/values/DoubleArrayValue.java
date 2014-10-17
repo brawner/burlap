@@ -1,5 +1,6 @@
 package burlap.oomdp.core.values;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Set;
 
@@ -17,15 +18,21 @@ import burlap.oomdp.core.Value;
  */
 public class DoubleArrayValue extends Value{
 
-	protected double [] doubleArray;
+	private final double [] doubleArray;
 	
 	public DoubleArrayValue(Attribute attribute) {
 		super(attribute);
+		this.doubleArray = null;
 	}
 	
 	public DoubleArrayValue(Value v){
 		super(v);
 		this.doubleArray = ((DoubleArrayValue)v).doubleArray.clone();
+	}
+	
+	public DoubleArrayValue(Attribute attribute, double[] arry) {
+		super(attribute);
+		this.doubleArray = arry.clone();
 	}
 
 	@Override
@@ -33,6 +40,33 @@ public class DoubleArrayValue extends Value{
 		return new DoubleArrayValue(this);
 	}
 
+	@Override
+	public Value changeValue(String v) {
+		if(v.startsWith("\"") && v.endsWith("\"")){
+			v = v.substring(1, v.length());
+		}
+		String [] comps = v.split(",");
+		double[] doubleArray = new double[comps.length];
+		for(int i = 0; i < comps.length; i++){
+			doubleArray[i] = Double.parseDouble(comps[i]);
+		}
+		return new DoubleArrayValue(this.attribute, doubleArray);
+	}
+	
+	@Override
+	public Value changeValue(int[] intArray) {
+		double[] doubleArray = new double[intArray.length];
+		for(int i = 0; i < intArray.length; i++){
+			doubleArray[i] = intArray[i];
+		}
+		return new DoubleArrayValue(this.attribute, doubleArray);
+	}
+	
+	@Override
+	public Value changeValue(double[] doubleArray) {
+		return new DoubleArrayValue(this.attribute, doubleArray);
+	}
+	
 	@Override
 	public void setValue(int v) {
 		throw new UnsupportedOperationException("Value is of type DoubleArray, cannot set value to int.");
@@ -44,7 +78,9 @@ public class DoubleArrayValue extends Value{
 	}
 
 	@Override
+	@Deprecated
 	public void setValue(String v) {
+		throw new UnsupportedOperationException("Value is of type DoubleArray, cannot set value to a single double."); /*
 		if(v.startsWith("\"") && v.endsWith("\"")){
 			v = v.substring(1, v.length());
 		}
@@ -52,7 +88,7 @@ public class DoubleArrayValue extends Value{
 		this.doubleArray = new double[comps.length];
 		for(int i = 0; i < comps.length; i++){
 			this.doubleArray[i] = Double.parseDouble(comps[i]);
-		}
+		}*/
 	}
 
 	@Override
@@ -96,6 +132,11 @@ public class DoubleArrayValue extends Value{
 		}
 		return buf.toString();
 	}
+	
+	@Override
+	public StringBuilder buildStringVal(StringBuilder builder) {
+		return builder.append(Arrays.toString(this.doubleArray));
+	}
 
 	@Override
 	public Set<String> getAllRelationalTargets() {
@@ -117,17 +158,23 @@ public class DoubleArrayValue extends Value{
 		return sum;
 	}
 
+	
+	
 	@Override
+	@Deprecated
 	public void setValue(int[] intArray) {
+		throw new UnsupportedOperationException("Value is of type DoubleArray, cannot set value to a single double."); /*
 		this.doubleArray = new double[intArray.length];
 		for(int i = 0; i < intArray.length; i++){
 			this.doubleArray[i] = intArray[i];
-		}
+		}*/
 	}
 
 	@Override
+	@Deprecated
 	public void setValue(double[] doubleArray) {
-		this.doubleArray = doubleArray;
+		throw new UnsupportedOperationException("Value is of type DoubleArray, cannot set value to a single double."); /*
+		this.doubleArray = doubleArray;*/
 	}
 
 	@Override
@@ -153,6 +200,10 @@ public class DoubleArrayValue extends Value{
 	
 	@Override
 	public boolean equals(Object obj){
+		if (this == obj) {
+			return true;
+		}
+		
 		if(!(obj instanceof DoubleArrayValue)){
 			return false;
 		}

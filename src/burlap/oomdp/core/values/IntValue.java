@@ -20,7 +20,7 @@ public class IntValue extends Value {
 	/**
 	 * The int value
 	 */
-	protected int			intVal = 0;
+	private final int			intVal;
 	
 	
 	/**
@@ -29,6 +29,7 @@ public class IntValue extends Value {
 	 */
 	public IntValue(Attribute attribute) {
 		super(attribute);
+		this.intVal = 0;
 	}
 	
 	
@@ -40,6 +41,11 @@ public class IntValue extends Value {
 		super(v);
 		this.intVal = ((IntValue)v).intVal;
 	}
+	
+	public IntValue(Attribute attribute, int v) {
+		super(attribute);
+		this.intVal = v;
+	}
 
 	@Override
 	public Value copy() {
@@ -47,27 +53,51 @@ public class IntValue extends Value {
 	}
 
 	@Override
-	public void setValue(int v) {
-		this.intVal = v;
-	}
-
-	@Override
-	public void setValue(double v) {
-		this.intVal = (int)v;
-	}
-
-	@Override
-	public void setValue(String v) {
-		this.intVal = Integer.parseInt(v);
+	public final Value changeValue(int v) {
+		return new DiscreteValue(this.attribute, v);
 	}
 	
 	@Override
+	public final Value changeValue(double v) {
+		return new DiscreteValue(this.attribute, (int)v);
+	}
+	
+	@Override
+	public final Value changeValue(boolean v) {
+		return new DiscreteValue(this.attribute, v ? 1 : 0);
+	}
+	
+	@Override
+	public final Value changeValue(String v) {
+		return new DiscreteValue(this.attribute, Integer.parseInt(v));
+	}
+	
+	@Deprecated
+	@Override
+	public void setValue(int v) {
+		//this.intVal = v;
+	}
+
+	@Deprecated
+	@Override
+	public void setValue(double v) {
+		//this.intVal = (int)v;
+	}
+
+	@Deprecated
+	@Override
+	public void setValue(String v) {
+		//this.intVal = Integer.parseInt(v);
+	}
+	
+	@Deprecated
+	@Override
 	public void setValue(boolean v) {
 		if(v){
-			this.intVal = 1;
+			//this.intVal = 1;
 		}
 		else{
-			this.intVal = 0;
+			//this.intVal = 0;
 		}
 	}
 
@@ -106,6 +136,11 @@ public class IntValue extends Value {
 	public String getStringVal() {
 		return "" + this.intVal;
 	}
+	
+	@Override
+	public StringBuilder buildStringVal(StringBuilder builder) {
+		return builder.append(this.intVal);
+	}
 
 	@Override
 	public Set<String> getAllRelationalTargets() {
@@ -120,6 +155,10 @@ public class IntValue extends Value {
 	
 	@Override
 	public boolean equals(Object obj){
+		if (this == obj) {
+			return true;
+		}
+		
 		if(!(obj instanceof IntValue)){
 			return false;
 		}

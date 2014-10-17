@@ -46,20 +46,20 @@ public class AffordanceGreedyQPolicy extends GreedyQPolicy {
 			filteredQValues = allQValues;
 		}
 
-		List <QValue> maxActions = new ArrayList<QValue>();
-		maxActions.add(filteredQValues.get(0));
 		double maxQ = filteredQValues.get(0).q;
-		for(int i = 1; i < filteredQValues.size(); i++){
-			QValue q = filteredQValues.get(i);
-			if(q.q == maxQ){
-				maxActions.add(q);
-			}
-			else if(q.q > maxQ){
-				maxActions.clear();
-				maxActions.add(q);
+		for (QValue q : filteredQValues) {
+			if (q.q > maxQ) {
 				maxQ = q.q;
 			}
 		}
+		
+		List <QValue> maxActions = new ArrayList<QValue>();
+		for (QValue q : filteredQValues) {
+			if (q.q == maxQ) {
+				maxActions.add(q);
+			}
+		}
+
 		return maxActions.get(rand.nextInt(maxActions.size())).a;
 	}
 	

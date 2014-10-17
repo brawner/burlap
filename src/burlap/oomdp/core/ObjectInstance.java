@@ -15,9 +15,9 @@ import burlap.oomdp.core.Attribute.AttributeType;
  */
 public class ObjectInstance {
 	
-	protected ObjectClass					obClass;			//object class to which this object belongs
-	protected String						name;				//name of the object for disambiguation
-	protected List <Value>					values;				//the values for each attribute
+	private final ObjectClass					obClass;			//object class to which this object belongs
+	private final String						name;				//name of the object for disambiguation
+	private final List <Value>					values;				//the values for each attribute
 	
 	
 	
@@ -31,8 +31,7 @@ public class ObjectInstance {
 		
 		this.obClass = obClass;
 		this.name = name;
-		
-		this.initializeValueObjects();
+		this.values = Collections.unmodifiableList(this.initializeValueObjects());
 		
 	}
 	
@@ -45,12 +44,24 @@ public class ObjectInstance {
 		
 		this.obClass = o.obClass;
 		this.name = o.name;
-		
-		this.values = new ArrayList <Value>(o.values);
+		this.values = o.values;
 			
 	}
 	
+	public ObjectInstance(ObjectClass obClass, String name, List<Value> newValues) {
+		this.obClass = obClass;
+		this.name = name;
+		List<Value> values = new  ArrayList<Value>(newValues);
+		this.values = Collections.unmodifiableList(values);
+	}
 	
+	
+	public ObjectInstance(String name, ObjectInstance objectInstance) {
+		this.obClass = objectInstance.obClass;
+		this.name = name;
+		this.values = objectInstance.values;
+	}
+
 	/**
 	 * Creates and returns a new object instance that is a deep copy of this object instance's values.
 	 * @return a new object instance that is a deep copy of this object instance's values (the name and object class reference are a shallow copy)
@@ -64,45 +75,66 @@ public class ObjectInstance {
 	/**
 	 * Creates new value object assignments for each of this object instance class's attributes.
 	 */
-	public void initializeValueObjects(){
+	public List <Value> initializeValueObjects(){
 		
-		values = new ArrayList <Value>(obClass.numAttributes());
+		List <Value> values = new ArrayList <Value>(obClass.numAttributes());
 		for(Attribute att : obClass.attributeList){
 			values.add(att.valueConstructor());
 		}
-		
+		return values;
 	}
 	
+	
+	public ObjectInstance replaceName(String name){
+		return new ObjectInstance(this.obClass, name, this.values);
+	}
 	
 	/**
 	 * Sets the name of this object instance.
 	 * @param name the name for this object instance.
 	 */
+	@Deprecated
 	public void setName(String name){
-		this.name = name;
+		throw new UnsupportedOperationException("Method is deprecated, don't use");
 	}
 	
+	public ObjectInstance changeValue(String attName, String v){
+		List<Value> values = new ArrayList<Value>(this.values);
+		int ind = obClass.attributeIndex(attName);
+		Value value = values.get(ind);
+		values.set(ind, value.changeValue(v));
+		return new ObjectInstance(this.obClass, this.name, values);
+	}
 	
 	/**
 	 * Sets the value of the attribute named attName for this object instance.
 	 * @param attName the name of the attribute whose value is to be set.
 	 * @param v the string rep value to which the attribute of this object instance should be set.
 	 */
+	@Deprecated
 	public void setValue(String attName, String v){
-		int ind = obClass.attributeIndex(attName);
+		throw new UnsupportedOperationException("Method is deprecated, don't use");
+		/*int ind = obClass.attributeIndex(attName);
 		Value value = values.get(ind);
 		Value newValue = value.copy();
 		newValue.setValue(v);
-		values.set(ind, newValue);
-		
+		values.set(ind, newValue);*/		
 	}
 	
+	public ObjectInstance changeValue(String attName, double v){
+		List<Value> values = new ArrayList<Value>(this.values);
+		int ind = obClass.attributeIndex(attName);
+		Value value = values.get(ind);
+		values.set(ind, value.changeValue(v));
+		return new ObjectInstance(this.obClass, this.name, values);
+	}
 	
 	/**
 	 * Sets the value of the attribute named attName for this object instance.
 	 * @param attName the name of the attribute whose value is to be set.
 	 * @param v the double rep value to which the attribute of this object instance should be set.
 	 */
+	@Deprecated
 	public void setValue(String attName, double v){
 		int ind = obClass.attributeIndex(attName);
 		Value value = values.get(ind);
@@ -111,11 +143,20 @@ public class ObjectInstance {
 		values.set(ind, newValue);
 	}
 	
+	public ObjectInstance changeValue(String attName, int v){
+		List<Value> values = new ArrayList<Value>(this.values);
+		int ind = obClass.attributeIndex(attName);
+		Value value = values.get(ind);
+		values.set(ind, value.changeValue(v));
+		return new ObjectInstance(this.obClass, this.name, values);
+	}
+	
 	/**
 	 * Sets the value of the attribute named attName for this object instance.
 	 * @param attName the name of the attribute whose value is to be set.
 	 * @param v the int rep value to which the attribute of this object instance should be set.
 	 */
+	@Deprecated
 	public void setValue(String attName, int v){
 		int ind = obClass.attributeIndex(attName);
 		Value value = values.get(ind);
@@ -124,11 +165,20 @@ public class ObjectInstance {
 		values.set(ind, newValue);
 	}
 	
+	public ObjectInstance changeValue(String attName, boolean v){
+		List<Value> values = new ArrayList<Value>(this.values);
+		int ind = obClass.attributeIndex(attName);
+		Value value = values.get(ind);
+		values.set(ind, value.changeValue(v));
+		return new ObjectInstance(this.obClass, this.name, values);
+	}
+	
 	/**
 	 * Sets the value of the attribute named attName for this object instance.
 	 * @param attName the name of the attribute whose value is to be set.
 	 * @param v the int rep value to which the attribute of this object instance should be set.
 	 */
+	@Deprecated
 	public void setValue(String attName, boolean v){
 		int ind = obClass.attributeIndex(attName);
 		Value value = values.get(ind);
@@ -137,11 +187,21 @@ public class ObjectInstance {
 		values.set(ind, newValue);
 	}
 	
+	
+	public ObjectInstance changeValue(String attName, int[] v){
+		List<Value> values = new ArrayList<Value>(this.values);
+		int ind = obClass.attributeIndex(attName);
+		Value value = values.get(ind);
+		values.set(ind, value.changeValue(v));
+		return new ObjectInstance(this.obClass, this.name, values);
+	}
+	
 	/**
 	 * Sets the value of the attribute named attName for this object instance.
 	 * @param attName the name of the attribute whose value is to be set.
 	 * @param v the int array rep value to which the attribute of this object instance should be set.
 	 */
+	@Deprecated
 	public void setValue(String attName, int [] v){
 		int ind = obClass.attributeIndex(attName);
 		Value value = values.get(ind);
@@ -150,11 +210,20 @@ public class ObjectInstance {
 		values.set(ind, newValue);
 	}
 	
+	public ObjectInstance changeValue(String attName, double[] v){
+		List<Value> values = new ArrayList<Value>(this.values);
+		int ind = obClass.attributeIndex(attName);
+		Value value = values.get(ind);
+		values.set(ind, value.changeValue(v));
+		return new ObjectInstance(this.obClass, this.name, values);
+	}
+	
 	/**
 	 * Sets the value of the attribute named attName for this object instance.
 	 * @param attName the name of the attribute whose value is to be set.
 	 * @param v the double array rep value to which the attribute of this object instance should be set.
 	 */
+	@Deprecated
 	public void setValue(String attName, double [] v){
 		int ind = obClass.attributeIndex(attName);
 		Value value = values.get(ind);
@@ -163,18 +232,36 @@ public class ObjectInstance {
 		values.set(ind, newValue);
 	}
 	
+	
+	public ObjectInstance appendRelationalTarget(String attName, String target){
+		List<Value> values = new ArrayList<Value>(this.values);
+		int ind = obClass.attributeIndex(attName);
+		Value value = values.get(ind);
+		values.set(ind, value.appendRelationalTarget(target));
+		return new ObjectInstance(this.obClass, this.name, values);
+	}
+	
 	/**
 	 * Sets the relational value of the attribute named attName for this object instance. If the
 	 * attribute is a multi-target relational attribute, then this value is added to the target list.
 	 * @param attName the name of the relational attribute that will have a relational target added/set
 	 * @param target the name of the object reference that is to be added as a target.
 	 */
+	@Deprecated
 	public void addRelationalTarget(String attName, String target){
 		int ind = obClass.attributeIndex(attName);
 		Value value = values.get(ind);
 		Value newValue = value.copy();
 		newValue.addRelationalTarget(target);
 		values.set(ind, newValue);
+	}
+	
+	public ObjectInstance appendAllRelationTargets(String attName, Collection<String> targets){
+		List<Value> values = new ArrayList<Value>(this.values);
+		int ind = obClass.attributeIndex(attName);
+		Value value = values.get(ind);
+		values.set(ind, value.appendAllRelationalTargets(targets));
+		return new ObjectInstance(this.obClass, this.name, values);
 	}
 	
 	/**
@@ -184,6 +271,7 @@ public class ObjectInstance {
 	 * @param targets the names of the object references that are to be added as a targets.
 	 */
 	
+	@Deprecated
 	public void addAllRelationalTargets(String attName, Collection<String> targets) {
 		int ind = obClass.attributeIndex(attName);
 		Value value = values.get(ind);
@@ -192,10 +280,19 @@ public class ObjectInstance {
 		values.set(ind, newValue);
 	}
 	
+	public ObjectInstance removeAllRelationalTarget(String attName){
+		List<Value> values = new ArrayList<Value>(this.values);
+		int ind = obClass.attributeIndex(attName);
+		Value value = values.get(ind);
+		values.set(ind, value.removeAllRelationalTargets());
+		return new ObjectInstance(this.obClass, this.name, values);
+	}
+	
 	/**
 	 * Clears all the relational value targets of the attribute named attName for this object instance.
 	 * @param attName
 	 */
+	@Deprecated
 	public void clearRelationalTargets(String attName){
 		int ind = obClass.attributeIndex(attName);
 		Value value = values.get(ind);
@@ -204,11 +301,20 @@ public class ObjectInstance {
 		values.set(ind, newValue);
 	}
 	
+	public ObjectInstance replaceRelationalTarget(String attName, String target){
+		List<Value> values = new ArrayList<Value>(this.values);
+		int ind = obClass.attributeIndex(attName);
+		Value value = values.get(ind);
+		values.set(ind, value.replaceRelationalTarget(target));
+		return new ObjectInstance(this.obClass, this.name, values);
+	}
+	
 	/**
 	 * Removes an object target from the specified relational attribute.
 	 * @param attName the name of the relational attribute from which the target should be removed.
 	 * @param target the target to remove from the relational attribute value.
 	 */
+	@Deprecated
 	public void removeRelationalTarget(String attName, String target){
 		int ind = obClass.attributeIndex(attName);
 		Value value = values.get(ind);
@@ -252,7 +358,7 @@ public class ObjectInstance {
 	 */
 	public Value getValueForAttribute(String attName){
 		int ind = obClass.attributeIndex(attName);
-		return values.get(ind).copy();
+		return values.get(ind);
 	}
 	
 	/**
@@ -312,7 +418,7 @@ public class ObjectInstance {
 	 */
 	public Set <String> getAllRelationalTargets(String attName){
 		int ind = obClass.attributeIndex(attName);
-		return new HashSet<String>(values.get(ind).getAllRelationalTargets());
+		return values.get(ind).getAllRelationalTargets();
 	}
 	
 	/**
@@ -365,17 +471,25 @@ public class ObjectInstance {
 	 * @return a string representation of this object including its name and value attribute value assignment.
 	 */
 	public String getObjectDescription(){
+		return this.buildObjectDescription(new StringBuilder()).toString();
 		
-		String desc = name + " (" + this.getTrueClassName() + ")\n";
-		for(Value v : values){
-			desc = desc + "\t" + v.attName() + ":\t" + v.getStringVal() + "\n";
-		}
-		
-		return desc;
 	
 	}
 	
+	public StringBuilder buildObjectDescription(StringBuilder builder) {
+		builder = builder.append(name).append(" (").append(this.getTrueClassName()).append(")\n");
+		for(Value v : values){
+			builder = builder.append("\t").append(v.attName()).append(":\t");
+			builder = v.buildStringVal(builder).append("\n");
+		}
+		
+		return builder;
+	}
 	
+	@Override
+	public String toString() {
+		return this.getObjectDescription();
+	}
 	/**
 	 * Returns a double vector of all the observable values in this object instance. Discrete values have
 	 * their int stored valued converted to a double for this array. This method will throw a runtime exception
@@ -428,9 +542,10 @@ public class ObjectInstance {
 		}
 		
 		ObjectInstance op = (ObjectInstance)obj;
-		if(op.name.equals(name))
-			return true;
-		return false;
+		if (!op.name.equals(name)) {
+			return false; 
+		}
+		return op.obClass.equals(this.obClass);
 	}
 	
 	
@@ -440,31 +555,25 @@ public class ObjectInstance {
 	 * @return true if this object instance and obj have identical value assignments; false otherwise.
 	 */
 	public boolean valueEquals(ObjectInstance obj){
-		if (this == obj) {
-			return true;
-		}
-		if(!obClass.name.equals(obj.obClass.name)){
+		if (!this.equals(obj)) {
 			return false;
 		}
 	
-		for(Value v : values){
-		
-			Value ov = obj.getValueForAttribute(v.attName());
-			if(!v.equals(ov)){
+		Value v, ov;
+		for (int i = 0; i < this.values.size(); i++) {
+			v = this.values.get(i);
+			ov = obj.values.get(i);
+			if (!v.equals(ov)) {
 				return false;
 			}
-		
 		}
-		
 		return true;
-	
 	}
 	
 	
 	public int hashCode(){
 		return name.hashCode();
 	}
-	
 	
 
 }

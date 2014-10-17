@@ -105,7 +105,7 @@ public class BoltzmannActor extends Actor {
 		StateHashTuple sh = this.hashingFactory.hashState(critqiue.getS());
 		PolicyNode node = this.getNode(sh);
 		
-		double learningRate = this.learningRate.pollLearningRate(this.totalNumberOfSteps, sh.s, critqiue.getA());
+		double learningRate = this.learningRate.pollLearningRate(this.totalNumberOfSteps, sh.getState(), critqiue.getA());
 		
 		ActionPreference pref = this.getMatchingPreference(sh, critqiue.getA(), node);
 		pref.preference += learningRate * critqiue.getCritique();
@@ -153,7 +153,7 @@ public class BoltzmannActor extends Actor {
 		
 		if(this.containsParameterizedActions && !this.domain.isObjectIdentifierDependent()){
 			//then convert back to this states space
-			Map <String, String> matching = node.sh.s.getObjectMatchingTo(s, false);
+			Map <String, String> matching = node.sh.getState().getObjectMatchingTo(s, false);
 			
 			List <ActionProb> translated = new ArrayList<ActionProb>(probs.size());
 			for(ActionProb ap : probs){
@@ -183,7 +183,7 @@ public class BoltzmannActor extends Actor {
 	protected PolicyNode getNode(StateHashTuple sh){
 		
 		//List <GroundedAction> gas = sh.s.getAllGroundedActionsFor(this.actions);
-		List<GroundedAction> gas = Action.getAllApplicableGroundedActionsFromActionList(this.actions, sh.s);
+		List<GroundedAction> gas = Action.getAllApplicableGroundedActionsFromActionList(this.actions, sh.getState());
 		
 		PolicyNode node = this.preferences.get(sh);
 		if(node == null){
@@ -228,7 +228,7 @@ public class BoltzmannActor extends Actor {
 		
 		GroundedAction translatedAction = ga;
 		if(ga.params.length > 0  && !this.domain.isObjectIdentifierDependent() && ga.parametersAreObjects()){
-			Map <String, String> matching = sh.s.getObjectMatchingTo(node.sh.s, false);
+			Map <String, String> matching = sh.getState().getObjectMatchingTo(node.sh.getState(), false);
 			translatedAction = this.translateAction(ga, matching);
 		}
 		

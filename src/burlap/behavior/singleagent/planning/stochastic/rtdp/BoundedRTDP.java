@@ -291,24 +291,24 @@ public class BoundedRTDP extends ValueFunctionPlanner {
 		
 		StateHashTuple csh = this.hashingFactory.hashState(s);
 		
-		while(!this.tf.isTerminal(csh.s) && (trajectory.size() < this.maxDepth+1 || this.maxDepth == -1)){
+		while(!this.tf.isTerminal(csh.getState()) && (trajectory.size() < this.maxDepth+1 || this.maxDepth == -1)){
 			
 			if(this.runRolloutsInReverse){
 				trajectory.offerFirst(csh);
 			}
 			
 			this.setValueFunctionToLowerBound();
-			QValue mxL = this.maxQ(csh.s);
+			QValue mxL = this.maxQ(csh.getState());
 			this.lowerBoundV.put(csh, mxL.q);
 			
 			this.setValueFunctionToUpperBound();
-			QValue mxU = this.maxQ(csh.s);
+			QValue mxU = this.maxQ(csh.getState());
 			this.upperBoundV.put(csh, mxU.q);
 			
 			numBellmanUpdates += 2;
 			this.numSteps++;
 			
-			StateSelectionAndExpectedGap select = this.getNextState(csh.s, (GroundedAction)mxU.a);
+			StateSelectionAndExpectedGap select = this.getNextState(csh.getState(), (GroundedAction)mxU.a);
 			csh = select.sh;
 			
 			if(select.expectedGap < this.maxDiff){
@@ -318,7 +318,7 @@ public class BoundedRTDP extends ValueFunctionPlanner {
 			
 		}
 		
-		if(this.tf.isTerminal(csh.s)){
+		if(this.tf.isTerminal(csh.getState())){
 			this.lowerBoundV.put(csh, 0.);
 			this.upperBoundV.put(csh, 0.);
 		}
@@ -331,11 +331,11 @@ public class BoundedRTDP extends ValueFunctionPlanner {
 			while(trajectory.size() > 0){
 				StateHashTuple sh = trajectory.pop();
 				this.setValueFunctionToLowerBound();
-				QValue mxL = this.maxQ(sh.s);
+				QValue mxL = this.maxQ(sh.getState());
 				this.lowerBoundV.put(sh, mxL.q);
 				
 				this.setValueFunctionToUpperBound();
-				QValue mxU = this.maxQ(sh.s);
+				QValue mxU = this.maxQ(sh.getState());
 				this.upperBoundV.put(sh, mxU.q);
 				
 				numBellmanUpdates += 2;

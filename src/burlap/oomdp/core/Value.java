@@ -13,7 +13,7 @@ import java.util.Set;
  */
 public abstract class Value {
 
-	protected Attribute			attribute;			//defines the attribute kind of this value
+	protected final Attribute			attribute;			//defines the attribute kind of this value
 	protected boolean			isObservable=true;	//relevant to POMDPs for which values are only observable at certain times
 	
 	
@@ -79,7 +79,37 @@ public abstract class Value {
 	 */
 	public abstract Value copy();
 	
+	public Value changeValue(int v) {
+		throw new UnsupportedOperationException("Value " + this.getClass().getCanonicalName() + "does not implement this method");
+	}
+	public Value changeValue(double v) {
+		throw new UnsupportedOperationException("Value " + this.getClass().getCanonicalName() + "does not implement this method");
+	}
 	
+	public Value changeValue(String v) {
+		throw new UnsupportedOperationException("Value " + this.getClass().getCanonicalName() + "does not implement this method");
+	}
+	public Value changeValue(boolean v){
+		throw new UnsupportedOperationException("Value " + this.getClass().getCanonicalName() + "does not implement this method");
+	}
+	public Value changeValue(int[] v){
+		throw new UnsupportedOperationException("Value " + this.getClass().getCanonicalName() + "does not implement this method");
+	}
+	public Value changeValue(double[] v){
+		throw new UnsupportedOperationException("Value " + this.getClass().getCanonicalName() + "does not implement this method");
+	}
+	public Value appendRelationalTarget(String t){
+		throw new UnsupportedOperationException("Value " + this.getClass().getCanonicalName() + "does not implement this method");
+	}
+	public Value appendAllRelationalTargets(Collection<String> targets){
+		throw new UnsupportedOperationException("Value " + this.getClass().getCanonicalName() + "does not implement this method");
+	}
+	public Value removeAllRelationalTargets(){
+		throw new UnsupportedOperationException("Value " + this.getClass().getCanonicalName() + "does not implement this method");
+	}
+	public Value replaceRelationalTarget(String target){
+		throw new UnsupportedOperationException("Value " + this.getClass().getCanonicalName() + "does not implement this method");
+	}
 	/**
 	 * Sets the internal value representation using an int value
 	 * @param v the int value assignment
@@ -158,6 +188,8 @@ public abstract class Value {
 	 * @return the string value of this Value object
 	 */
 	public abstract String getStringVal();
+	
+	public abstract StringBuilder buildStringVal(StringBuilder builder);
 	
 	/**
 	 * Returns the ordered set of all relational targets of this object. The set will be empty

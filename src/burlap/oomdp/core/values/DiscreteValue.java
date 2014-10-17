@@ -21,7 +21,7 @@ public class DiscreteValue extends Value{
 	 * the index in the list of categorical values. The default value
 	 * of -1 indicates an unset attribute value.
 	 */
-	protected int			discVal = -1;
+	private final int			discVal;
 	
 	
 	/**
@@ -30,6 +30,7 @@ public class DiscreteValue extends Value{
 	 */
 	public DiscreteValue(Attribute attribute){
 		super(attribute);
+		this.discVal = -1;
 	}
 	
 	/**
@@ -42,35 +43,64 @@ public class DiscreteValue extends Value{
 		this.discVal = dv.discVal;
 	}
 	
+	public DiscreteValue(Attribute attribute, int v) {
+		super(attribute);
+		this.discVal = v;
+	}
+	
 	@Override
 	public Value copy(){
 		return new DiscreteValue(this);
 	}
 	
 	@Override
+	public final Value changeValue(int v) {
+		return new DiscreteValue(this.attribute, v);
+	}
+	
+	@Override
+	public final Value changeValue(double v) {
+		return new DiscreteValue(this.attribute, (int)v);
+	}
+	
+	@Override
+	public final Value changeValue(boolean v) {
+		return new DiscreteValue(this.attribute, v ? 1 : 0);
+	}
+	
+	@Override
+	public final Value changeValue(String v) {
+		return new DiscreteValue(this.attribute, attribute.discValuesHash.get(v));
+	}
+	
+	@Override
+	@Deprecated
 	public void setValue(int v){
-		this.discVal = v;
+		//this.discVal = v;
 	}
 	
 	@Override
+	@Deprecated
 	public void setValue(double v){
-		this.discVal = (int)v;
+		//this.discVal = (int)v;
 	}
 	
 	@Override
+	@Deprecated
 	public void setValue(boolean v) {
 		if(v){
-			this.discVal = 1;
+			//this.discVal = 1;
 		}
 		else{
-			this.discVal = 0;
+			//this.discVal = 0;
 		}
 	}
 	
 	@Override
+	@Deprecated
 	public void setValue(String v){
 		int intv = attribute.discValuesHash.get(v);
-		discVal = intv;
+		//discVal = intv;
 	}
 	
 	@Override
@@ -115,6 +145,14 @@ public class DiscreteValue extends Value{
 	}
 	
 	@Override
+	public StringBuilder buildStringVal(StringBuilder builder) {
+		if(this.discVal == -1){
+			throw new UnsetValueException();
+		}
+		return builder.append(this.discVal);
+	}
+	
+	@Override
 	public Set<String> getAllRelationalTargets() {
 		throw new UnsupportedOperationException("Value is discrete, cannot return relational values");
 	}
@@ -131,6 +169,9 @@ public class DiscreteValue extends Value{
 	
 	@Override
 	public boolean equals(Object obj){
+		if (this == obj) {
+			return true;
+		}
 		
 		if(!(obj instanceof DiscreteValue)){
 			return false;

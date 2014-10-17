@@ -65,13 +65,13 @@ public class NameDependentStateHashFactory implements StateHashFactory {
 		}
 
 		@Override
-		public void computeHashCode() {
+		public int computeHashCode() {
 			
 			StringBuffer buf = new StringBuffer();
 			
 			boolean completeMatch = true;
 			for(String oname : NameDependentStateHashFactory.this.objectNameOrder){
-				ObjectInstance o = this.s.getObject(oname);
+				ObjectInstance o = this.getState().getObject(oname);
 				if(o != null){
 					buf.append(o.getObjectDescription());
 				}
@@ -82,17 +82,17 @@ public class NameDependentStateHashFactory implements StateHashFactory {
 			
 			if(!completeMatch){
 				int start = NameDependentStateHashFactory.this.objectNameOrder.size();
-				NameDependentStateHashFactory.this.addNewObjectNames(this.s);
+				NameDependentStateHashFactory.this.addNewObjectNames(this.getState());
 				for(int i = start; i < NameDependentStateHashFactory.this.objectNameOrder.size(); i++){
-					ObjectInstance o = this.s.getObject(NameDependentStateHashFactory.this.objectNameOrder.get(i));
+					ObjectInstance o = this.getState().getObject(NameDependentStateHashFactory.this.objectNameOrder.get(i));
 					if(o != null){
 						buf.append(o.getObjectDescription());
 					}
 				}
 			}
 			
-			this.hashCode = buf.toString().hashCode();
-			this.needToRecomputeHashCode = false;
+			return buf.toString().hashCode();
+			//this.needToRecomputeHashCode = false;
 			
 		}
 		
@@ -102,15 +102,27 @@ public class NameDependentStateHashFactory implements StateHashFactory {
 			if(this == other){
 				return true;
 			}
-			if(!(other instanceof StateHashTuple)){
+			if(!(other instanceof NameDependentStateHashTuple)){
 				return false;
 			}
-			StateHashTuple o = (StateHashTuple)other;
+			NameDependentStateHashTuple o = (NameDependentStateHashTuple)other;
 			
-			List <ObjectInstance> obs = this.s.getObservableObjects();
+			State state = this.getState();
+			State otherState = o.getState();
+			if (state == otherState) {
+				return true;
+			}
+			
+			List <ObjectInstance> obs = state.getObservableObjects();
+			
+			
+			if (obs.size() != otherState.numObservableObjects()) {
+				return false;
+			}
+
 			for(ObjectInstance ob : obs){
 				String name = ob.getName();
-				ObjectInstance oob = o.s.getObject(name);
+				ObjectInstance oob = otherState.getObject(name);
 				if(oob == null){
 					return false;
 				}

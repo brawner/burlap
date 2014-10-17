@@ -9,13 +9,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
 
-import cc.mallet.types.Dirichlet;
 import burlap.oomdp.core.AbstractGroundedAction;
-import burlap.oomdp.core.GroundedProp;
-import burlap.oomdp.core.PropositionalFunction;
-import burlap.oomdp.core.State;
 import burlap.oomdp.logicalexpressions.LogicalExpression;
-import burlap.oomdp.logicalexpressions.PFAtom;
+import cc.mallet.types.Dirichlet;
 
 /**
  * @author dabel

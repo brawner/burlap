@@ -26,10 +26,6 @@ public class BoltzmannPolicySum {
 		this.stateHashFactory = ((OOMDPPlanner)planner).getHashingFactory();
 	}
 	
-	private void setValueFunction(ValueFunctionValues valueFunction) {
-		this.valueFunction = valueFunction;
-	}
-	
 	public double getZ(State state) {
 		StateHashTuple hash = this.stateHashFactory.hashState(state);
 		Double v = this.zValues.get(hash);

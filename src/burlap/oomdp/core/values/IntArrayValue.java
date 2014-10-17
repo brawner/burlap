@@ -1,5 +1,6 @@
 package burlap.oomdp.core.values;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Set;
 
@@ -16,16 +17,22 @@ import burlap.oomdp.core.Value;
  */
 public class IntArrayValue extends Value {
 
-	protected int [] intArray = null;
+	private final int [] intArray;
 	
 	
 	public IntArrayValue(Attribute attribute) {
 		super(attribute);
+		this.intArray = null;
 	}
 	
 	public IntArrayValue(Value v){
 		super(v);
 		this.intArray = ((IntArrayValue)v).intArray.clone();
+	}
+	
+	public IntArrayValue(Attribute attribute, int[] intArray) {
+		super(attribute);
+		this.intArray = intArray.clone();
 	}
 
 	@Override
@@ -33,6 +40,34 @@ public class IntArrayValue extends Value {
 		return new IntArrayValue(this);
 	}
 
+	@Override
+	public Value changeValue(String v) {
+		if(v.startsWith("\"") && v.endsWith("\"")){
+			v = v.substring(1, v.length());
+		}
+		String [] comps = v.split(",");
+		int[] intArray = new int[comps.length];
+		for(int i = 0; i < comps.length; i++){
+			intArray[i] = Integer.parseInt(comps[i]);
+		}
+		return new IntArrayValue(this.attribute, intArray);
+	}
+	
+	@Override
+	public Value changeValue(int[] intArray) {
+		return new IntArrayValue(this.attribute, intArray);
+	}
+	
+	@Override
+	public Value changeValue(double[] doubleArray) {
+		int[] intArray = new int[doubleArray.length];
+		for(int i = 0; i < doubleArray.length; i++){
+			intArray[i] = (int)doubleArray[i];
+		}
+		return new IntArrayValue(this.attribute, intArray);
+	}
+	
+	
 	@Override
 	public void setValue(int v) {
 		throw new UnsupportedOperationException("Value is of type IntArray, cannot set single int value.");
@@ -44,7 +79,9 @@ public class IntArrayValue extends Value {
 	}
 
 	@Override
+	@Deprecated
 	public void setValue(String v) {
+		throw new UnsupportedOperationException("Value is of type IntArray, cannot set double value."); /*
 		if(v.startsWith("\"") && v.endsWith("\"")){
 			v = v.substring(1, v.length());
 		}
@@ -52,7 +89,7 @@ public class IntArrayValue extends Value {
 		this.intArray = new int[comps.length];
 		for(int i = 0; i < comps.length; i++){
 			this.intArray[i] = Integer.parseInt(comps[i]);
-		}
+		}*/
 	}
 
 	@Override
@@ -96,6 +133,11 @@ public class IntArrayValue extends Value {
 		}
 		return buf.toString();
 	}
+	
+	@Override
+	public StringBuilder buildStringVal(StringBuilder builder) {
+		return builder.append(Arrays.toString(this.intArray));
+	}
 
 	@Override
 	public Set<String> getAllRelationalTargets() {
@@ -118,8 +160,10 @@ public class IntArrayValue extends Value {
 	}
 
 	@Override
+	@Deprecated
 	public void setValue(int[] intArray) {
-		this.intArray = intArray;
+		throw new UnsupportedOperationException("Value is of type IntArray, cannot set double value.");/*
+		this.intArray = intArray;*/
 	}
 
 	@Override
@@ -143,6 +187,10 @@ public class IntArrayValue extends Value {
 	
 	@Override
 	public boolean equals(Object obj){
+		if (this == obj) {
+			return true;
+		}
+		
 		if(!(obj instanceof IntArrayValue)){
 			return false;
 		}

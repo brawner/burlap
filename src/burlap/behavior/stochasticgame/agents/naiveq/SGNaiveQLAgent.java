@@ -273,10 +273,10 @@ public class SGNaiveQLAgent extends Agent implements QComputablePlanner{
 		State storedRep = stateRepresentations.get(shq);
 		if(storedRep == null){
 			//no existing entry so we can create it
-			stateRepresentations.put(shq, shq.s);
+			stateRepresentations.put(shq, shq.getState());
 			List <QValue> entries = new ArrayList<QValue>();
 			for(GroundedSingleAction gsa : gsas){
-				QValue q = new QValue(shq.s, gsa, this.qInit.qValue(shq.s, gsa));
+				QValue q = new QValue(shq.getState(), gsa, this.qInit.qValue(shq.getState(), gsa));
 				entries.add(q);
 			}
 			qMap.put(shq, entries);
@@ -293,7 +293,7 @@ public class SGNaiveQLAgent extends Agent implements QComputablePlanner{
 			GroundedSingleAction transgsa = gsa;
 			if(gsa.isParameterized() && !this.domain.isObjectIdentifierDependent() && gsa.parametersAreObjects()){
 				if(matching == null){
-					matching = shq.s.getObjectMatchingTo(storedRep, false);
+					matching = shq.getState().getObjectMatchingTo(storedRep, false);
 				}
 				transgsa = this.translateAction(gsa, matching);
 			}
@@ -309,7 +309,7 @@ public class SGNaiveQLAgent extends Agent implements QComputablePlanner{
 			}
 			
 			if(!foundMatch){
-				QValue qe = new QValue(shq.s, transgsa, this.qInit.qValue(shq.s, transgsa));
+				QValue qe = new QValue(shq.getState(), transgsa, this.qInit.qValue(shq.getState(), transgsa));
 				entries.add(qe);
 				returnedEntries.add(qe);
 			}
@@ -336,8 +336,8 @@ public class SGNaiveQLAgent extends Agent implements QComputablePlanner{
 		State storedRep = stateRepresentations.get(shq);
 		if(storedRep == null){
 			//no existing entry so we can create it
-			stateRepresentations.put(shq, shq.s);
-			QValue q = new QValue(storedRep, gsa, this.qInit.qValue(shq.s, gsa));
+			stateRepresentations.put(shq, shq.getState());
+			QValue q = new QValue(storedRep, gsa, this.qInit.qValue(shq.getState(), gsa));
 			List <QValue> entries = new ArrayList<QValue>();
 			entries.add(q);
 			qMap.put(shq, entries);
@@ -346,7 +346,7 @@ public class SGNaiveQLAgent extends Agent implements QComputablePlanner{
 		
 		if(gsa.isParameterized() && !this.domain.isObjectIdentifierDependent() && a.parametersAreObjects()){
 			//then we'll need to translate this action to match the internal state representation
-			Map <String, String> matching = shq.s.getObjectMatchingTo(storedRep, false);
+			Map <String, String> matching = shq.getState().getObjectMatchingTo(storedRep, false);
 			gsa = this.translateAction(gsa, matching);
 		}
 		
@@ -358,7 +358,7 @@ public class SGNaiveQLAgent extends Agent implements QComputablePlanner{
 		}
 		
 		//if we got here then there are no entries for this action
-		QValue qe = new QValue(shq.s, gsa, this.qInit.qValue(shq.s, gsa));
+		QValue qe = new QValue(shq.getState(), gsa, this.qInit.qValue(shq.getState(), gsa));
 		entries.add(qe);
 		
 		return qe;

@@ -374,7 +374,7 @@ public class QLearning extends OOMDPPlanner implements QComputablePlanner, Learn
 		QLearningStateNode node = this.getStateNode(s);
 		
 		if(a.params.length > 0 && !this.domain.isObjectIdentifierDependent() && a.parametersAreObjects()){
-			Map<String, String> matching = s.s.getObjectMatchingTo(node.s.s, false);
+			Map<String, String> matching = s.getState().getObjectMatchingTo(node.s.getState(), false);
 			a = this.translateAction(a, matching);
 		}
 		
@@ -400,13 +400,13 @@ public class QLearning extends OOMDPPlanner implements QComputablePlanner, Learn
 		
 		if(node == null){
 			node = new QLearningStateNode(s);
-			List<GroundedAction> gas = this.getAllGroundedActions(s.s);
+			List<GroundedAction> gas = this.getAllGroundedActions(s.getState());
 			if(gas.size() == 0){
-				gas = this.getAllGroundedActions(s.s);
+				gas = this.getAllGroundedActions(s.getState());
 				throw new RuntimeErrorException(new Error("No possible actions in this state, cannot continue Q-learning"));
 			}
 			for(GroundedAction ga : gas){
-				node.addQValue(ga, qInitFunction.qValue(s.s, ga));
+				node.addQValue(ga, qInitFunction.qValue(s.getState(), ga));
 			}
 			
 			qIndex.put(s, node);
@@ -462,15 +462,15 @@ public class QLearning extends OOMDPPlanner implements QComputablePlanner, Learn
 		
 		maxQChangeInLastEpisode = 0.;
 		
-		while(!tf.isTerminal(curState.s) && eStepCounter < maxSteps){
+		while(!tf.isTerminal(curState.getState()) && eStepCounter < maxSteps){
 			
-			GroundedAction action = (GroundedAction)learningPolicy.getAction(curState.s);
+			GroundedAction action = (GroundedAction)learningPolicy.getAction(curState.getState());
 			QValue curQ = this.getQ(curState, action);
 			
-			StateHashTuple nextState = this.stateHash(action.executeIn(curState.s));
+			StateHashTuple nextState = this.stateHash(action.executeIn(curState.getState()));
 			double maxQ = 0.;
 			
-			if(!tf.isTerminal(nextState.s)){
+			if(!tf.isTerminal(nextState.getState())){
 				maxQ = this.getMaxQ(nextState);
 			}
 			
@@ -478,9 +478,9 @@ public class QLearning extends OOMDPPlanner implements QComputablePlanner, Learn
 			double r = 0.;
 			double discount = this.gamma;
 			if(action.action.isPrimitive()){
-				r = rf.reward(curState.s, action, nextState.s);
+				r = rf.reward(curState.getState(), action, nextState.getState());
 				eStepCounter++;
-				ea.recordTransitionTo(action, nextState.s, r);
+				ea.recordTransitionTo(action, nextState.getState(), r);
 			}
 			else{
 				Option o = (Option)action.action;
@@ -492,7 +492,7 @@ public class QLearning extends OOMDPPlanner implements QComputablePlanner, Learn
 					ea.appendAndMergeEpisodeAnalysis(o.getLastExecutionResults());
 				}
 				else{
-					ea.recordTransitionTo(action, nextState.s, r);
+					ea.recordTransitionTo(action, nextState.getState(), r);
 				}
 			}
 			
@@ -501,7 +501,7 @@ public class QLearning extends OOMDPPlanner implements QComputablePlanner, Learn
 			double oldQ = curQ.q;
 			
 			//update Q-value
-			curQ.q = curQ.q + this.learningRate.pollLearningRate(this.totalNumberOfSteps, curState.s, action) * (r + (discount * maxQ) - curQ.q);
+			curQ.q = curQ.q + this.learningRate.pollLearningRate(this.totalNumberOfSteps, curState.getState(), action) * (r + (discount * maxQ) - curQ.q);
 			
 			double deltaQ = Math.abs(oldQ - curQ.q);
 			if(deltaQ > maxQChangeInLastEpisode){

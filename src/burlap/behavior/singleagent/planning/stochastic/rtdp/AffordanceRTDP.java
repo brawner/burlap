@@ -6,7 +6,6 @@ package burlap.behavior.singleagent.planning.stochastic.rtdp;
 import burlap.behavior.affordances.AffordancesController;
 import burlap.behavior.singleagent.ValueFunctionInitialization;
 import burlap.behavior.singleagent.planning.commonpolicies.AffordanceGreedyQPolicy;
-import burlap.behavior.singleagent.planning.commonpolicies.GreedyQPolicy;
 import burlap.behavior.statehashing.StateHashFactory;
 import burlap.behavior.statehashing.StateHashTuple;
 import burlap.debugtools.DPrint;

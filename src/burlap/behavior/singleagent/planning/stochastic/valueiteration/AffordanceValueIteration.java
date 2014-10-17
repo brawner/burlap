@@ -194,7 +194,7 @@ public class AffordanceValueIteration extends ValueFunctionPlanner{
 			mapToStateIndex.put(sh, sh);
 			
 			//do not need to expand from terminal states if set to prune
-			if(this.tf.isTerminal(sh.s) && stopReachabilityFromTerminalStates){
+			if(this.tf.isTerminal(sh.getState()) && stopReachabilityFromTerminalStates){
 				continue;
 			}
 			
@@ -243,15 +243,15 @@ public class AffordanceValueIteration extends ValueFunctionPlanner{
 			//first get all grounded actions for this state
 			List <AbstractGroundedAction> gas = new ArrayList<AbstractGroundedAction>();
 			for(Action a : actions){
-				gas.addAll(sh.s.getAllGroundedActionsFor(a));
+				gas.addAll(a.getAllApplicableGroundedActions(sh.getState()));
 			}
 			
-			List<AbstractGroundedAction> prunedActions = this.affController.filterIrrelevantActionsInState(gas, sh.s);
+			List<AbstractGroundedAction> prunedActions = this.affController.filterIrrelevantActionsInState(gas, sh.getState());
 
 			//now add transitions
 			allTransitions = new ArrayList<ActionTransitions>(gas.size());
 			for(AbstractGroundedAction ga : prunedActions){
-				ActionTransitions at = new ActionTransitions(sh.s, (GroundedAction)ga, hashingFactory);
+				ActionTransitions at = new ActionTransitions(sh.getState(), (GroundedAction)ga, hashingFactory);
 				allTransitions.add(at);
 			}
 			

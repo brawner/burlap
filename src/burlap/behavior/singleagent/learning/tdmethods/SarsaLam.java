@@ -150,19 +150,19 @@ public class SarsaLam extends QLearning {
 		eStepCounter = 0;
 		LinkedList<EligibilityTrace> traces = new LinkedList<SarsaLam.EligibilityTrace>();
 		
-		GroundedAction action = (GroundedAction)learningPolicy.getAction(curState.s);
+		GroundedAction action = (GroundedAction)learningPolicy.getAction(curState.getState());
 		QValue curQ = this.getQ(curState, action);
 		
 		
 		
-		while(!tf.isTerminal(curState.s) && eStepCounter < maxSteps){
+		while(!tf.isTerminal(curState.getState()) && eStepCounter < maxSteps){
 			
-			StateHashTuple nextState = this.stateHash(action.executeIn(curState.s));
-			GroundedAction nextAction = (GroundedAction)learningPolicy.getAction(nextState.s);
+			StateHashTuple nextState = this.stateHash(action.executeIn(curState.getState()));
+			GroundedAction nextAction = (GroundedAction)learningPolicy.getAction(nextState.getState());
 			QValue nextQ = this.getQ(nextState, nextAction);
 			double nextQV = nextQ.q;
 			
-			if(tf.isTerminal(nextState.s)){
+			if(tf.isTerminal(nextState.getState())){
 				nextQV = 0.;
 			}
 			
@@ -171,9 +171,9 @@ public class SarsaLam extends QLearning {
 			double r = 0.;
 			double discount = this.gamma;
 			if(action.action.isPrimitive()){
-				r = rf.reward(curState.s, action, nextState.s);
+				r = rf.reward(curState.getState(), action, nextState.getState());
 				eStepCounter++;
-				ea.recordTransitionTo(action, nextState.s, r);
+				ea.recordTransitionTo(action, nextState.getState(), r);
 			}
 			else{
 				Option o = (Option)action.action;
@@ -185,7 +185,7 @@ public class SarsaLam extends QLearning {
 					ea.appendAndMergeEpisodeAnalysis(o.getLastExecutionResults());
 				}
 				else{
-					ea.recordTransitionTo(action, nextState.s, r);
+					ea.recordTransitionTo(action, nextState.getState(), r);
 				}
 			}
 			
@@ -208,7 +208,7 @@ public class SarsaLam extends QLearning {
 					}
 				}
 				
-				double learningRate = this.learningRate.pollLearningRate(this.totalNumberOfSteps, et.sh.s, et.q.a);
+				double learningRate = this.learningRate.pollLearningRate(this.totalNumberOfSteps, et.sh.getState(), et.q.a);
 				
 				et.q.q = et.q.q + (learningRate * et.eligibility * delta);
 				et.eligibility = et.eligibility * lambda * discount;

@@ -141,7 +141,7 @@ public class PrioritizedSweeping extends ValueIteration{
 			mapToStateIndex.put(node.sh, node.sh);
 			
 			//do not need to expand from terminal states if set to prune
-			if(this.tf.isTerminal(node.sh.s) && stopReachabilityFromTerminalStates){
+			if(this.tf.isTerminal(node.sh.getState()) && stopReachabilityFromTerminalStates){
 				continue;
 			}
 			
@@ -281,12 +281,12 @@ public class PrioritizedSweeping extends ValueIteration{
 		 */
 		public BPTR(BPTRNode backNode, StateHashTuple forwardState){
 			this.backNode = backNode;
-			List<GroundedAction> actions = PrioritizedSweeping.this.getAllGroundedActions(backNode.sh.s);
+			List<GroundedAction> actions = PrioritizedSweeping.this.getAllGroundedActions(backNode.sh.getState());
 			double maxProb = 0.;
 			//find action with maximum transition probability
 			for(GroundedAction ga : actions){
 				//search for match
-				List<TransitionProbability> tps = ga.action.getTransitions(backNode.sh.s, ga.params);
+				List<TransitionProbability> tps = ga.action.getTransitions(backNode.sh.getState(), ga.params);
 				for(TransitionProbability tp : tps){
 					StateHashTuple tpsh = PrioritizedSweeping.this.hashingFactory.hashState(tp.s);
 					if(tpsh.equals(forwardState)){

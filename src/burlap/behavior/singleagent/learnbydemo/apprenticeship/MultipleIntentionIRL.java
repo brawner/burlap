@@ -1,23 +1,15 @@
 package burlap.behavior.singleagent.learnbydemo.apprenticeship;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 
 import burlap.behavior.singleagent.EpisodeAnalysis;
 import burlap.behavior.singleagent.Policy;
-import org.apache.commons.lang3.ArrayUtils;
-
-import burlap.behavior.singleagent.EpisodeAnalysis;
-import burlap.behavior.singleagent.Policy;
-import burlap.behavior.singleagent.learnbydemo.apprenticeship.ApprenticeshipLearning.FeatureWeights;
 import burlap.behavior.singleagent.learnbydemo.apprenticeship.requests.MLIRLRequest;
 import burlap.behavior.singleagent.planning.OOMDPPlanner;
 import burlap.behavior.singleagent.planning.QComputablePlanner;
 import burlap.behavior.singleagent.planning.commonpolicies.BoltzmannQPolicy;
-import burlap.behavior.singleagent.planning.commonpolicies.GreedyQPolicy;
-import burlap.behavior.singleagent.planning.stochastic.valueiteration.ValueIteration;
 import burlap.behavior.singleagent.vfa.StateToFeatureVectorGenerator;
 import burlap.behavior.statehashing.StateHashFactory;
 import burlap.oomdp.core.Domain;

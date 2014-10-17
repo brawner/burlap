@@ -358,7 +358,7 @@ public class SparseSampling extends OOMDPPlanner implements QComputablePlanner{
 		
 		if(a.params.length > 0 && !this.domain.isObjectIdentifierDependent() && a.parametersAreObjects()){
 			StateHashTuple storedSh = this.mapToStateIndex.get(sh);
-			a = a.translateParameters(s, storedSh.s);
+			a = a.translateParameters(s, storedSh.getState());
 		}
 		
 		for(QValue qv : qs){
@@ -455,11 +455,11 @@ public class SparseSampling extends OOMDPPlanner implements QComputablePlanner{
 		 * @return a {@link List} of the estiamted Q-values for each action.
 		 */
 		public List<QValue> estimateQs(){
-			List<GroundedAction> gas = SparseSampling.this.getAllGroundedActions(this.sh.s);
+			List<GroundedAction> gas = SparseSampling.this.getAllGroundedActions(this.sh.getState());
 			List<QValue> qs = new ArrayList<QValue>(gas.size());
 			for(GroundedAction ga : gas){
 				if(this.height <= 0){
-					qs.add(new QValue(this.sh.s, ga, SparseSampling.this.vinit.value(this.sh.s)));
+					qs.add(new QValue(this.sh.getState(), ga, SparseSampling.this.vinit.value(this.sh.getState())));
 				}
 				else{
 					double q;
@@ -470,7 +470,7 @@ public class SparseSampling extends OOMDPPlanner implements QComputablePlanner{
 						q = this.fullBelmmanQValue(ga);
 					}
 					
-					qs.add(new QValue(this.sh.s, ga, q));
+					qs.add(new QValue(this.sh.getState(), ga, q));
 				}
 			}
 			
@@ -491,7 +491,7 @@ public class SparseSampling extends OOMDPPlanner implements QComputablePlanner{
 			for(int i = 0; i < c; i++){
 				
 				//execute
-				State ns = ga.executeIn(this.sh.s);
+				State ns = ga.executeIn(this.sh.getState());
 				
 				//manage option stepsize modifications
 				int k = 1;
@@ -500,7 +500,7 @@ public class SparseSampling extends OOMDPPlanner implements QComputablePlanner{
 				}
 				
 				//get reward; our rf will automatically do cumumative discounted if it's an option
-				double r = SparseSampling.this.rf.reward(this.sh.s, ga, ns);
+				double r = SparseSampling.this.rf.reward(this.sh.getState(), ga, ns);
 				
 				StateNode nsn = SparseSampling.this.getStateNode(ns, this.height-k);
 				
@@ -522,13 +522,13 @@ public class SparseSampling extends OOMDPPlanner implements QComputablePlanner{
 		protected double fullBelmmanQValue(GroundedAction ga){
 			
 			double sum = 0.;
-			List<TransitionProbability> tps = ga.action.getTransitions(this.sh.s, ga.params);
+			List<TransitionProbability> tps = ga.action.getTransitions(this.sh.getState(), ga.params);
 			
 			if(!(ga.action instanceof Option)){
 				
 				for(TransitionProbability tp : tps){
 					
-					double r = SparseSampling.this.rf.reward(this.sh.s, ga, tp.s);
+					double r = SparseSampling.this.rf.reward(this.sh.getState(), ga, tp.s);
 					StateNode nsn = SparseSampling.this.getStateNode(tp.s, this.height-1);
 					sum += tp.p * (r + SparseSampling.this.gamma * nsn.estimateV());
 					
@@ -555,7 +555,7 @@ public class SparseSampling extends OOMDPPlanner implements QComputablePlanner{
 				return this.v;
 			}
 			
-			if(SparseSampling.this.tf.isTerminal(this.sh.s)){
+			if(SparseSampling.this.tf.isTerminal(this.sh.getState())){
 				this.v = 0.;
 				this.closed = true;
 				return this.v;

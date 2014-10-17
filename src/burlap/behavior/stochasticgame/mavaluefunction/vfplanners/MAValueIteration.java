@@ -187,7 +187,7 @@ public class MAValueIteration extends MAValueFunctionPlanner {
 			
 			double maxChange = Double.NEGATIVE_INFINITY;
 			for(StateHashTuple sh : this.states){
-				double change = this.backupAllValueFunctions(sh.s);
+				double change = this.backupAllValueFunctions(sh.getState());
 				maxChange = Math.max(change, maxChange);
 			}
 			
@@ -228,9 +228,9 @@ public class MAValueIteration extends MAValueFunctionPlanner {
 			StateHashTuple sh = openQueue.poll();
 			
 			//expand
-			List<JointAction> jas = JointAction.getAllJointActions(sh.s, this.agentDefinitions);
+			List<JointAction> jas = JointAction.getAllJointActions(sh.getState(), this.agentDefinitions);
 			for(JointAction ja : jas){
-				List<TransitionProbability> tps = this.jointActionModel.transitionProbsFor(sh.s, ja);
+				List<TransitionProbability> tps = this.jointActionModel.transitionProbsFor(sh.getState(), ja);
 				for(TransitionProbability tp : tps){
 					StateHashTuple shp = this.hashingFactory.hashState(tp.s);
 					if(!this.states.contains(shp)){

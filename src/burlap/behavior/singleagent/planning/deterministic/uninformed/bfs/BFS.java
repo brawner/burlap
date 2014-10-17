@@ -75,7 +75,7 @@ public class BFS extends DeterministicPlanner {
 			
 			
 			
-			State s = node.s.s;
+			State s = node.s.getState();
 			if(gc.satisfies(s)){
 				lastVistedNode = node;
 				break;

@@ -10,6 +10,7 @@ import burlap.behavior.statehashing.StateHashTuple;
 import burlap.oomdp.core.Domain;
 import burlap.oomdp.core.TerminalFunction;
 import burlap.oomdp.core.TransitionProbability;
+import burlap.oomdp.singleagent.Action;
 import burlap.oomdp.singleagent.GroundedAction;
 import burlap.oomdp.singleagent.RewardFunction;
 
@@ -34,7 +35,7 @@ public class ValueIterationWithBoltzmanExploration extends ValueIteration {
 	
 	@Override
 	protected double performBellmanUpdateOn(StateHashTuple sh){
-		if(this.tf.isTerminal(sh.s)){
+		if(this.tf.isTerminal(sh.getState())){
 			//terminal states always have a state value of 0
 			valueFunction.put(sh, 0.);
 			return 0.;
@@ -47,7 +48,7 @@ public class ValueIterationWithBoltzmanExploration extends ValueIteration {
 		
 			List<ActionTransitions> transitions = this.getActionsTransitions(sh);
 			for(ActionTransitions at : transitions){
-				double q = this.computeQ(sh.s, at);
+				double q = this.computeQ(sh.getState(), at);
 				if(q > maxQ){
 					maxQ = q;
 				}
@@ -55,8 +56,10 @@ public class ValueIterationWithBoltzmanExploration extends ValueIteration {
 			
 		}
 		else{
-			
-			List <GroundedAction> gas = sh.s.getAllGroundedActionsFor(this.actions);
+			List <GroundedAction> gas = new ArrayList<GroundedAction>();
+			for (Action action : this.actions) {
+				gas.addAll(action.getAllApplicableGroundedActions(sh.getState()));
+			}
 			for(GroundedAction ga : gas){
 				double q = this.computeQ(sh, ga);
 				if(q > maxQ){
@@ -98,10 +101,10 @@ public class ValueIterationWithBoltzmanExploration extends ValueIteration {
 		if(ga.action instanceof Option){
 			
 			Option o = (Option)ga.action;
-			double expectedR = o.getExpectedRewards(sh.s, ga.params);
+			double expectedR = o.getExpectedRewards(sh.getState(), ga.params);
 			q += expectedR;
 			
-			List <TransitionProbability> tps = o.getTransitions(sh.s, ga.params);
+			List <TransitionProbability> tps = o.getTransitions(sh.getState(), ga.params);
 			for(TransitionProbability tp : tps){
 				double vp = this.blendQValuesViaBoltzmann(sh, tps);
 				
@@ -113,11 +116,11 @@ public class ValueIterationWithBoltzmanExploration extends ValueIteration {
 		}
 		else{
 			
-			List <TransitionProbability> tps = ga.action.getTransitions(sh.s, ga.params);
+			List <TransitionProbability> tps = ga.action.getTransitions(sh.getState(), ga.params);
 			for(TransitionProbability tp : tps){
 				double vp = this.blendQValuesViaBoltzmann(sh, tps);
 				double discount = this.gamma;
-				double r = rf.reward(sh.s, ga, tp.s);
+				double r = rf.reward(sh.getState(), ga, tp.s);
 				
 				q += tp.p * (r + (discount * vp));
 			}
