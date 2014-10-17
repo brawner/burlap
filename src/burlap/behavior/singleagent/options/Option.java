@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
-
 import burlap.behavior.singleagent.EpisodeAnalysis;
 import burlap.behavior.singleagent.Policy;
 import burlap.behavior.singleagent.Policy.ActionProb;
@@ -15,6 +14,7 @@ import burlap.behavior.statehashing.StateHashFactory;
 import burlap.behavior.statehashing.StateHashTuple;
 import burlap.oomdp.auxiliary.common.NullTermination;
 import burlap.oomdp.core.Domain;
+import burlap.oomdp.core.ObjectInstance;
 import burlap.oomdp.core.State;
 import burlap.oomdp.core.TerminalFunction;
 import burlap.oomdp.core.TransitionProbability;
@@ -22,13 +22,6 @@ import burlap.oomdp.singleagent.Action;
 import burlap.oomdp.singleagent.GroundedAction;
 import burlap.oomdp.singleagent.RewardFunction;
 import burlap.oomdp.singleagent.common.NullAction;
-
-
-
-
-
-
-
 
 /**
  * This is an abstract class to provide support to learning and planning with options [1], which are
@@ -631,7 +624,7 @@ public abstract class Option extends Action {
 	/**
 	 * This method will recursively determine all possible paths that could occur from execution of the option as well
 	 * as the expected return. This method will stop expanding the possible paths when the probability of a state
-	 * being reached is less than {@link expectationSearchCutoffProb}
+	 * being reached is less than {@link #expectationSearchCutoffProb}
 	 * @param src the source node from which to expand possible paths
 	 * @param stackedDiscount the discount amount up to this point
 	 * @param possibleTerminations a map of possible termination states and their probability
@@ -702,7 +695,7 @@ public abstract class Option extends Action {
 	
 	/**
 	 * This method creates a deterministic action selection probability distribution where the deterministic action
-	 * to be selected with probability 1 is the one returned by the method {@link getDeterministicPolicy(State, String[])}.
+	 * to be selected with probability 1 is the one returned by the method {@link #getDeterministicPolicy(State, String[])}.
 	 * This method is helpful for quickly defining the action selection distribution for deterministic option policies.
 	 * @param s the state for which the action selection distribution should be returned.
 	 * @param params the parameters that were passed to the option at initiation

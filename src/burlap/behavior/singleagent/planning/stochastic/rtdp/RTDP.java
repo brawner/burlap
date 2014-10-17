@@ -1,5 +1,6 @@
 package burlap.behavior.singleagent.planning.stochastic.rtdp;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -73,6 +74,11 @@ public class RTDP extends ValueFunctionPlanner {
 	 */
 	protected boolean					useBatch = false;
 	
+	
+	/**
+	 * Stores the number of Bellman updates made across all planning.
+	 */
+	protected int						numberOfBellmanUpdates = 0;
 	
 	
 	
@@ -188,6 +194,14 @@ public class RTDP extends ValueFunctionPlanner {
 		this.useBatch = useBatch;
 	}
 	
+	/**
+	 * Returns the total number of Bellman updates across all planning
+	 * @return the total number of Bellman updates across all planning
+	 */
+	public int getNumberOfBellmanUpdates(){
+		return this.numberOfBellmanUpdates;
+	}
+	
 	@Override
 	public void planFromState(State initialState) {
 		if(!useBatch){
@@ -206,14 +220,12 @@ public class RTDP extends ValueFunctionPlanner {
 		else{
 			return this.batchRTDP(initialState);
 		}
-
 	}
 
 	
 	/**
 	 * Runs normal RTDP in which bellman updates are performed after each action selection.
-	 * @param initiaState the initial state from which to plan
-	 * @return 
+	 * @param initialState the initial state from which to plan
 	 */
 	protected int normalRTDP(State initialState){
 		
@@ -221,7 +233,7 @@ public class RTDP extends ValueFunctionPlanner {
 		int consecutiveSmallDeltas = 0;
 		int numBellmanUpdates = 0;
 		for(int i = 0; i < numRollouts; i++){
-			
+			List<GroundedAction> rolloutActions = new ArrayList<GroundedAction>();
 			State curState = initialState;
 			int nSteps = 0;
 			double delta = 0;
@@ -231,24 +243,29 @@ public class RTDP extends ValueFunctionPlanner {
 				
 				//select an action
 				GroundedAction ga = (GroundedAction)this.rollOutPolicy.getAction(curState);
-				
-//				System.out.println("(rtdp)Action : " + ga.actionName());
-				
+				rolloutActions.add(ga);
 				//update this state's value
 				double curV = this.value(sh);
 				double nV = this.performBellmanUpdateOn(sh);
+
 				numBellmanUpdates++;
 				delta = Math.max(Math.abs(nV - curV), delta); 
+				this.numberOfBellmanUpdates++;
 				
 				//take the action
 				curState = ga.executeIn(curState);
 				nSteps++;
 			}
 			
+			
 			totalStates += nSteps;
 			
-			DPrint.cl(debugCode, "Pass: " + i + "; Num states: " + nSteps + " (total: " + totalStates + ")");
-			
+//			DPrint.cl(debugCode, "Pass: " + i + "; Num states: " + nSteps + " (total: " + totalStates + ")");
+//			System.out.print("Action sequence: ");
+//			for(GroundedAction ga : rolloutActions) {
+//				System.out.print(ga + ",");
+//			}
+//			System.out.print("\n\n");
 			if(delta < this.maxDelta){
 				consecutiveSmallDeltas++;
 				if(consecutiveSmallDeltas >= this.minNumRolloutsWithSmallValueChange){
@@ -262,8 +279,7 @@ public class RTDP extends ValueFunctionPlanner {
 			
 		}
 		
-		return numBellmanUpdates;
-		
+		return numBellmanUpdates;	
 	}
 	
 	
@@ -288,7 +304,7 @@ public class RTDP extends ValueFunctionPlanner {
 			double delta = this.performOrderedBellmanUpdates(orderedStates);
 			numBellmanUpdates++;
 			totalStates += orderedStates.size();
-			DPrint.cl(debugCode, "Pass: " + i + "; Num states: " + orderedStates.size() + " (total: " + totalStates + ")");
+//			DPrint.cl(debugCode, "Pass: " + i + "; Num states: " + orderedStates.size() + " (total: " + totalStates + ")");
 			
 			if(delta < this.maxDelta){
 				consecutiveSmallDeltas++;
@@ -319,6 +335,7 @@ public class RTDP extends ValueFunctionPlanner {
 			
 			double maxQ = this.performBellmanUpdateOn(sh);
 			delta = Math.max(Math.abs(maxQ - v), delta);
+			this.numberOfBellmanUpdates++;
 			
 		}
 		

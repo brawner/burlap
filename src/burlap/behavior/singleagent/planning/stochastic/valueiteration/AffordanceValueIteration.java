@@ -38,33 +38,8 @@ import burlap.oomdp.singleagent.RewardFunction;
  * @author James MacGlashan
  *
  */
-public class AffordanceValueIteration extends ValueFunctionPlanner{
+public class AffordanceValueIteration extends ValueIteration{
 
-	/**
-	 * When the maximum change in the value function is smaller than this value, VI will terminate.
-	 */
-	protected double												maxDelta;
-	
-	/**
-	 * When the number of VI iterations exceeds this value, VI will terminate.
-	 */
-	protected int													maxIterations;
-	
-	
-	/**
-	 * Indicates whether the reachable states has been computed yet.
-	 */
-	protected boolean												foundReachableStates = false;
-	
-	
-	/**
-	 * When the reachability analysis to find the state space is performed, a breadth first search-like pass
-	 * (spreading over all stochastic transitions) is performed. It can optionally be set so that the
-	 * search is pruned at terminal states by setting this value to true. By default, it is false and the full
-	 * reachable state space is found
-	 */
-	protected boolean												stopReachabilityFromTerminalStates = true;
-	
 	protected AffordancesController									affController;
 	
 	/**
@@ -78,60 +53,20 @@ public class AffordanceValueIteration extends ValueFunctionPlanner{
 	 * @param maxIterations when the number of VI iterations exceeds this value, VI will terminate.
 	 */
 	public AffordanceValueIteration(Domain domain, RewardFunction rf, TerminalFunction tf, double gamma, StateHashFactory hashingFactory, double maxDelta, int maxIterations, AffordancesController affController){
-		
-		this.VFPInit(domain, rf, tf, gamma, hashingFactory);
-		
-		this.maxDelta = maxDelta;
-		this.maxIterations = maxIterations;
-		
+		super(domain, rf, tf, gamma, hashingFactory, maxDelta, maxIterations);
 		this.affController = affController;
-	}
-	
-	
-	/**
-	 * Calling this method will force the planner to recompute the reachable states when the {@link #planFromState(State)} method is called next.
-	 * This may be useful if the transition dynamics from the last planning call have changed and if planning needs to be restarted as a result.
-	 */
-	public void recomputeReachableStates(){
-		this.foundReachableStates = false;
-		this.transitionDynamics = new HashMap<StateHashTuple, List<ActionTransitions>>();
-	}
-	
-	
-	/**
-	 * Sets whether the state reachability search to generate the state space will be prune the search from terminal states.
-	 * The default is not to prune.
-	 * @param toggle true if the search should prune the search at terminal states; false if the search should find all reachable states regardless of terminal states.
-	 */
-	public void toggleReachabiltiyTerminalStatePruning(boolean toggle){
-		this.stopReachabilityFromTerminalStates = toggle;
-	}
-	
-	
-	@Override
-	public void planFromState(State initialState){
-		this.initializeOptionsForExpectationComputations();
-		if(this.performAffordanceReachabilityFrom(initialState)){
-			this.runAffordanceVI();
-		}
-			
 	}
 	
 	public int planFromStateAndCount(State initialState){
 		this.initializeOptionsForExpectationComputations();
-		if(this.performAffordanceReachabilityFrom(initialState)){
-			return this.runAffordanceVI();
+		if(this.performReachabilityFrom(initialState)){
+			return this.runVI();
 		}
 		
 		return 0;
 			
 	}
-	
-	@Override
-	public void resetPlannerResults(){
-		super.resetPlannerResults();
-		this.foundReachableStates = false;
-	}
+
 	
 	/**
 	 * Runs VI until the specified termination conditions are met. In general, this method should only be called indirectly through the {@link #planFromState(State)} method.
@@ -139,7 +74,8 @@ public class AffordanceValueIteration extends ValueFunctionPlanner{
 	 * in the past or a runtime exception will be thrown. The {@link #planFromState(State)} method will automatically call the {@link #performAffordanceReachabilityFrom(State)} 
 	 * method first and then this if it hasn't been run.
 	 */
-	public int runAffordanceVI(){
+	@Override
+	public int runVI(){
 		
 		if(!this.foundReachableStates){
 			throw new RuntimeException("Cannot run VI until the reachable states have been found. Use planFromState method at least once or instead.");
@@ -156,7 +92,6 @@ public class AffordanceValueIteration extends ValueFunctionPlanner{
 			for(StateHashTuple sh : states){
 				
 				double v = this.value(sh);
-//				double maxQ = this.performBellmanUpdateOn(sh.s);
 				double maxQ = this.performAffordanceBellmanUpdateOn(sh, this.affController);
 				bellmanUpdates++;
 				delta = Math.max(Math.abs(maxQ - v), delta);
@@ -181,7 +116,8 @@ public class AffordanceValueIteration extends ValueFunctionPlanner{
 	 * @param si the source state from which all reachable states will be found
 	 * @return true if a reachability analysis had never been performed from this state; false otherwise.
 	 */
-	public boolean performAffordanceReachabilityFrom(State si){
+	@Override
+	public boolean performReachabilityFrom(State si){
 		
 		StateHashTuple sih = this.stateHash(si);
 		// If this is not a new state and we are not required to perform a new reachability analysis, then this method does not need to do anything.
@@ -210,7 +146,7 @@ public class AffordanceValueIteration extends ValueFunctionPlanner{
 			
 			//do not need to expand from terminal states if set to prune
 			if(this.tf.isTerminal(sh.s) && stopReachabilityFromTerminalStates){
-				System.out.println("(AffordanceValueIteration)reached terminal");
+//				System.out.println("(AffordanceValueIteration)reached terminal");
 				continue;
 			}
 			
@@ -255,18 +191,11 @@ public class AffordanceValueIteration extends ValueFunctionPlanner{
 			// Indicate how this state is stored
 			mapToStateIndex.put(sh, sh);
 			
-			
-			// First get all grounded actions for this state
-			List <AbstractGroundedAction> gas = new ArrayList<AbstractGroundedAction>();
-			for(Action a : actions){
-				gas.addAll(a.getAllApplicableGroundedActions(sh.s));
-			}
-			
 			// Now filter out bad actions using affordace knowledge base
-			List<AbstractGroundedAction> prunedActions = this.affController.filterIrrelevantActionsInState(gas, sh.s);
+			List<AbstractGroundedAction> prunedActions = this.affController.getPrunedActionsForState(sh.s);
 
 			// Now add transitions
-			allTransitions = new ArrayList<ActionTransitions>(gas.size());
+			allTransitions = new ArrayList<ActionTransitions>(prunedActions.size());
 			for(AbstractGroundedAction ga : prunedActions){
 				ActionTransitions at = new ActionTransitions(sh.s, (GroundedAction)ga, hashingFactory);
 				allTransitions.add(at);

@@ -54,7 +54,7 @@ public abstract class OOMDPPlanner {
 	/**
 	 * The list of actions this planner can use. May include non-domain specified actions like options.
 	 */
-	protected List <Action>											actions;
+	public List <Action>											actions;
 	
 	/**
 	 * A mapping to internal states that are stored. Useful since two identical states may have different object instance name identifiers
@@ -119,6 +119,7 @@ public abstract class OOMDPPlanner {
 				Option o = (Option)a;
 				o.keepTrackOfRewardWith(rf, gamma);
 				o.setExernalTermination(tf);
+				o.setExpectationHashingFactory(hashingFactory);
 				if(!(this.rf instanceof OptionEvaluatingRF)){
 					this.rf = new OptionEvaluatingRF(this.rf);
 				}
@@ -191,6 +192,14 @@ public abstract class OOMDPPlanner {
 		return this.hashingFactory;
 	}
 	
+	/**
+	 * Returns the mapeToStateIndex this planner uses
+	 * @return
+	 */
+	public Map<StateHashTuple, StateHashTuple> getMapToStateIndex() {
+		return this.mapToStateIndex;
+	}
+	
 	
 	
 	/**
@@ -209,6 +218,21 @@ public abstract class OOMDPPlanner {
 		this.tf = tf;
 	}
 
+	/**
+	 * Returns gamma, the discount factor used by this planner
+	 * @return gamma, the discount factor used by this planner
+	 */
+	public double getGamme(){
+		return this.gamma;
+	}
+	
+	/**
+	 * Sets gamma, the discount factor used by this planner
+	 * @param gamma the discount factor used by this planner
+	 */
+	public void setGamma(double gamma){
+		this.gamma = gamma;
+	}
 
 	/**
 	 * Sets the debug code to be used by calls to {@link burlap.debugtools.DPrint}

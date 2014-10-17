@@ -9,6 +9,7 @@ import javax.management.RuntimeErrorException;
 import burlap.behavior.affordances.AffordancesController;
 import burlap.behavior.singleagent.Policy;
 import burlap.behavior.singleagent.QValue;
+import burlap.behavior.singleagent.options.Option;
 import burlap.behavior.singleagent.planning.OOMDPPlanner;
 import burlap.behavior.singleagent.planning.PlannerDerivedPolicy;
 import burlap.behavior.singleagent.planning.QComputablePlanner;
@@ -71,7 +72,9 @@ public class GreedyQPolicy extends Policy implements PlannerDerivedPolicy{
 				maxQ = q.q;
 			}
 		}
-		return maxActions.get(rand.nextInt(maxActions.size())).a;
+		int selected = rand.nextInt(maxActions.size());
+		//return translated action parameters if the action is parameterized with objects in a object identifier indepdent domain
+		return maxActions.get(selected).a.translateParameters(maxActions.get(selected).s, s);
 	}
 
 	@Override
@@ -98,7 +101,7 @@ public class GreedyQPolicy extends Policy implements PlannerDerivedPolicy{
 			if(q.q == maxQ){
 				p = uniformMax;
 			}
-			ActionProb ap = new ActionProb(q.a, p);
+			ActionProb ap = new ActionProb(q.a.translateParameters(q.s, s), p);
 			res.add(ap);
 		}
 		
