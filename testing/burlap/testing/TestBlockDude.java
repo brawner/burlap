@@ -7,7 +7,6 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import burlap.behavior.singleagent.EpisodeAnalysis;
-import burlap.behavior.singleagent.EpisodeSequenceVisualizer;
 import burlap.behavior.singleagent.Policy;
 import burlap.behavior.singleagent.planning.SinglePFSCT;
 import burlap.behavior.singleagent.planning.StateConditionTest;
@@ -16,7 +15,6 @@ import burlap.behavior.singleagent.planning.deterministic.informed.Heuristic;
 import burlap.behavior.singleagent.planning.deterministic.informed.NullHeuristic;
 import burlap.behavior.singleagent.planning.deterministic.informed.astar.AStar;
 import burlap.behavior.statehashing.DiscreteStateHashFactory;
-import burlap.debugtools.MyTimer;
 import burlap.oomdp.auxiliary.StateParser;
 import burlap.oomdp.auxiliary.common.StateJSONParser;
 import burlap.oomdp.core.Domain;
@@ -25,7 +23,6 @@ import burlap.oomdp.core.TerminalFunction;
 import burlap.oomdp.singleagent.RewardFunction;
 import burlap.oomdp.singleagent.common.SinglePFTF;
 import burlap.oomdp.singleagent.common.UniformCostRF;
-import burlap.oomdp.visualizer.Visualizer;
 import burlap.testing.Domain.BlockDude;
 
 public class TestBlockDude {
