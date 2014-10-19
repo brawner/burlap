@@ -72,14 +72,13 @@ public class PrioritizedSweeping extends ValueIteration{
 	
 	
 	@Override
-	public void runVI(){
+	public int runVI(){
 		
 		if(!this.foundReachableStates){
 			throw new RuntimeException("Cannot run VI until the reachable states have been found. Use the planFromState or performReachabilityFrom method at least once before calling runVI.");
 		}
 		
 		DPrint.cl(this.debugCode, "Beginning Planning.");
-		
 		double lastDelta = Double.POSITIVE_INFINITY;
 		int numBackups = 0;
 		while(lastDelta > this.maxDelta && (numBackups < this.maxBackups || this.maxBackups == -1)){
@@ -107,7 +106,7 @@ public class PrioritizedSweeping extends ValueIteration{
 		}
 		
 		DPrint.cl(this.debugCode, "Finished planning with " + numBackups + " Bellman backups");
-		
+		return numBackups;
 	}
 	
 	@Override

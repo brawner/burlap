@@ -145,7 +145,7 @@ public class AffordanceValueIteration extends ValueIteration{
 			mapToStateIndex.put(sh, sh);
 			
 			//do not need to expand from terminal states if set to prune
-			if(this.tf.isTerminal(sh.s) && stopReachabilityFromTerminalStates){
+			if(this.tf.isTerminal(sh.getState()) && stopReachabilityFromTerminalStates){
 //				System.out.println("(AffordanceValueIteration)reached terminal");
 				continue;
 			}
@@ -192,12 +192,12 @@ public class AffordanceValueIteration extends ValueIteration{
 			mapToStateIndex.put(sh, sh);
 			
 			// Now filter out bad actions using affordace knowledge base
-			List<AbstractGroundedAction> prunedActions = this.affController.getPrunedActionsForState(sh.s);
+			List<AbstractGroundedAction> prunedActions = this.affController.getPrunedActionsForState(sh.getState());
 
 			// Now add transitions
 			allTransitions = new ArrayList<ActionTransitions>(prunedActions.size());
 			for(AbstractGroundedAction ga : prunedActions){
-				ActionTransitions at = new ActionTransitions(sh.s, (GroundedAction)ga, hashingFactory);
+				ActionTransitions at = new ActionTransitions(sh.getState(), (GroundedAction)ga, hashingFactory);
 				allTransitions.add(at);
 			}
 			

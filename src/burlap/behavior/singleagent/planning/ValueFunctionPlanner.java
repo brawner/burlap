@@ -170,7 +170,6 @@ public abstract class ValueFunctionPlanner extends OOMDPPlanner implements QComp
 		StateHashTuple sh = this.stateHash(s);
 		Map<String,String> matching = null;
 		StateHashTuple indexSH = mapToStateIndex.get(sh);
-		
 		if(indexSH == null){
 			//then this is an unexplored state
 			indexSH = sh;
@@ -204,7 +203,7 @@ public abstract class ValueFunctionPlanner extends OOMDPPlanner implements QComp
 		}
 		
 		if(this.containsParameterizedActions && !this.domain.isObjectIdentifierDependent()){
-			matching = sh.s.getObjectMatchingTo(indexSH.s, false);
+			matching = sh.getState().getObjectMatchingTo(indexSH.getState(), false);
 		}
 		
 		List <QValue> res = new ArrayList<QValue>();
@@ -378,12 +377,12 @@ public abstract class ValueFunctionPlanner extends OOMDPPlanner implements QComp
 		mapToStateIndex.put(sh, sh);
 		
 		// First get all grounded actions for this state
-		List<GroundedAction> gas = Action.getAllApplicableGroundedActionsFromActionList(this.actions, sh.s);
+		List<GroundedAction> gas = Action.getAllApplicableGroundedActionsFromActionList(this.actions, sh.getState());
 		
 		// Now add transitions
 		allTransitions = new ArrayList<ActionTransitions>(gas.size());
 		for(GroundedAction ga : gas){
-			ActionTransitions at = new ActionTransitions(sh.s, ga, this.hashingFactory);
+			ActionTransitions at = new ActionTransitions(sh.getState(), ga, this.hashingFactory);
 			allTransitions.add(at);
 		}
 		
@@ -430,13 +429,8 @@ public abstract class ValueFunctionPlanner extends OOMDPPlanner implements QComp
 	 */
 	protected double performBellmanUpdateOn(StateHashTuple sh){
 		
-<<<<<<< HEAD
-		if(this.tf.isTerminal(sh.s)){
-			// Terminal states always have a state value of 0
-=======
 		if(this.tf.isTerminal(sh.getState())){
-			//terminal states always have a state value of 0
->>>>>>> immutable_states_objects_values
+			// Terminal states always have a state value of 0
 			valueFunction.put(sh, 0.);
 			return 0.;
 		}
@@ -455,13 +449,7 @@ public abstract class ValueFunctionPlanner extends OOMDPPlanner implements QComp
 		}
 		else{
 			
-<<<<<<< HEAD
-			List<GroundedAction> gas = Action.getAllApplicableGroundedActionsFromActionList(this.actions, sh.s);
-			
-=======
-			//List <GroundedAction> gas = sh.s.getAllGroundedActionsFor(this.actions);
 			List<GroundedAction> gas = Action.getAllApplicableGroundedActionsFromActionList(this.actions, sh.getState());
->>>>>>> immutable_states_objects_values
 			for(GroundedAction ga : gas){
 				double q = this.computeQ(sh, ga);
 				if(q > maxQ){
@@ -484,7 +472,7 @@ public abstract class ValueFunctionPlanner extends OOMDPPlanner implements QComp
 	 */
 	public double performAffordanceBellmanUpdateOn(StateHashTuple sh, AffordancesController affController){
 		
-		if(this.tf.isTerminal(sh.s)){
+		if(this.tf.isTerminal(sh.getState())){
 			//terminal states always have a state value of 0
 			valueFunction.put(sh, 0.);
 			return 0.;
@@ -495,7 +483,7 @@ public abstract class ValueFunctionPlanner extends OOMDPPlanner implements QComp
 		if(this.useCachedTransitions){
 			List<ActionTransitions> transitions = this.getAffordanceActionsTransitions(sh, affController);
 			for(ActionTransitions at : transitions){
-				double q = this.computeQ(sh.s, at);
+				double q = this.computeQ(sh.getState(), at);
 				if(q > maxQ){
 					maxQ = q;
 				}
@@ -503,7 +491,7 @@ public abstract class ValueFunctionPlanner extends OOMDPPlanner implements QComp
 		}
 		else{
 			// TODO: check if this is the broken thing.
-			List <GroundedAction> gas = this.getAffordanceGroundedActions(sh.s, affController);
+			List <GroundedAction> gas = this.getAffordanceGroundedActions(sh.getState(), affController);
 			
 			for(GroundedAction ga : gas){
 				double q = this.computeQ(sh, ga);
@@ -526,12 +514,12 @@ public abstract class ValueFunctionPlanner extends OOMDPPlanner implements QComp
 	protected List <ActionTransitions> getAffordanceActionsTransitions(StateHashTuple sh, AffordancesController affController){
 			
 		// Select action set with affordance controller
-		List <AbstractGroundedAction> prunedActions = affController.getPrunedActionsForState(sh.s);
+		List <AbstractGroundedAction> prunedActions = affController.getPrunedActionsForState(sh.getState());
 		
 		// Now add transitions
 		List<ActionTransitions> allTransitions = new ArrayList<ActionTransitions>(prunedActions.size());
 		for(AbstractGroundedAction aga : prunedActions){
-			ActionTransitions at = new ActionTransitions(sh.s, new GroundedAction(domain.getAction(aga.actionName()), aga.params), hashingFactory);
+			ActionTransitions at = new ActionTransitions(sh.getState(), new GroundedAction(domain.getAction(aga.actionName()), aga.params), hashingFactory);
 			allTransitions.add(at);
 		}
 		
