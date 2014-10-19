@@ -204,7 +204,7 @@ public class DifferentiableVI extends DifferentiableVFPlanner{
 			}
 
 			//do not need to expand from terminal states if set to prune
-			if(this.tf.isTerminal(sh.s) && stopReachabilityFromTerminalStates){
+			if(this.tf.isTerminal(sh.getState()) && stopReachabilityFromTerminalStates){
 				continue;
 			}
 

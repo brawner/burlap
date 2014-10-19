@@ -57,12 +57,12 @@ public abstract class DifferentiableVFPlanner extends ValueFunctionPlanner imple
 	@Override
 	protected double performBellmanUpdateOn(StateHashTuple sh){
 
-		if(this.tf.isTerminal(sh.s)){
+		if(this.tf.isTerminal(sh.getState())){
 			this.valueFunction.put(sh, 0.);
 			return 0.;
 		}
 
-		List<QValue> qs = this.getQs(sh.s);
+		List<QValue> qs = this.getQs(sh.getState());
 		double [] dqs = new double[qs.size()];
 		for(int i = 0; i < qs.size(); i++){
 			dqs[i] = qs.get(i).q;
@@ -97,7 +97,7 @@ public abstract class DifferentiableVFPlanner extends ValueFunctionPlanner imple
 		}
 
 		//get q objects
-		List<QValue> Qs = this.getQs(sh.s);
+		List<QValue> Qs = this.getQs(sh.getState());
 		double [] qs = new double[Qs.size()];
 		for(int i = 0; i < Qs.size(); i++){
 			qs[i] = Qs.get(i).q;
@@ -107,7 +107,7 @@ public abstract class DifferentiableVFPlanner extends ValueFunctionPlanner imple
 		//get all q gradients
 		double [][] gqs = new double[qs.length][d];
 		for(int i = 0; i < qs.length; i++){
-			double [] gq = this.getQGradient(sh.s, (GroundedAction)Qs.get(i).a).gradient;
+			double [] gq = this.getQGradient(sh.getState(), (GroundedAction)Qs.get(i).a).gradient;
 			for(int j = 0; j < d; j++){
 				gqs[i][j] = gq[j];
 			}
