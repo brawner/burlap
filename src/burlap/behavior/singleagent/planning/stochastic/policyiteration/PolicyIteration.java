@@ -239,7 +239,7 @@ public class PolicyIteration extends ValueFunctionPlanner {
 			mapToStateIndex.put(sh, sh);
 			
 			//do not need to expand from terminal states
-			if(this.tf.isTerminal(sh.s)){
+			if(this.tf.isTerminal(sh.getState())){
 				continue;
 			}
 			

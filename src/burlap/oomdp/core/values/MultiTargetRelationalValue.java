@@ -1,6 +1,8 @@
 package burlap.oomdp.core.values;
 
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Iterator;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -20,7 +22,7 @@ public class MultiTargetRelationalValue extends Value {
 	 * The set of object targets to which this value points. Object targets are indicated
 	 * by their object name identifier.
 	 */
-	protected Set <String>		targetObjects;
+	private final Set<String>		targetObjects;
 	
 	
 	/**
@@ -29,7 +31,8 @@ public class MultiTargetRelationalValue extends Value {
 	 */
 	public MultiTargetRelationalValue(Attribute attribute){
 		super(attribute);
-		this.targetObjects = new TreeSet<String>();
+		Set<String> targets = new TreeSet<String>();
+		this.targetObjects = Collections.unmodifiableSet(targets);
 	}
 	
 	
@@ -40,16 +43,51 @@ public class MultiTargetRelationalValue extends Value {
 	public MultiTargetRelationalValue(Value v){
 		super(v);
 		MultiTargetRelationalValue rv = (MultiTargetRelationalValue)v;
-		this.targetObjects = new TreeSet<String>(rv.targetObjects);
+		Set<String> targets = new TreeSet<String>(rv.targetObjects);
+		this.targetObjects = Collections.unmodifiableSet(targets);
 	}
 	
-	
+	public MultiTargetRelationalValue(Attribute attribute, Set<String> targetObjects) {
+		super(attribute);
+		Set<String> targets = new TreeSet<String>(targetObjects);
+		this.targetObjects = Collections.unmodifiableSet(targets);
+	}
 	
 	@Override
 	public Value copy() {
 		return new MultiTargetRelationalValue(this);
 	}
-
+	
+	@Override
+	public Value changeValue(String v) {
+		Set<String> targetObjects = new TreeSet<String>();
+		targetObjects.add(v);
+		return new MultiTargetRelationalValue(this.attribute, targetObjects);
+	}
+	
+	@Override
+	public Value appendRelationalTarget(String v) {
+		TreeSet<String> newTargetObjects = new TreeSet<String>(this.targetObjects);
+		newTargetObjects.add(v);
+		return new MultiTargetRelationalValue(this.attribute, newTargetObjects);
+	}
+	
+	@Override
+	public Value appendAllRelationalTargets(Collection<String> targets) {
+		TreeSet<String> newTargetObjects = new TreeSet<String>(this.targetObjects);
+		newTargetObjects.addAll(targets);
+		return new MultiTargetRelationalValue(this.attribute, newTargetObjects);
+	}
+	
+	public Value removeAllRelationalTargets(){
+		return new MultiTargetRelationalValue(attribute);
+	}
+	public Value replaceRelationalTarget(String target){
+		TreeSet<String> newTargetObjects = new TreeSet<String>(this.targetObjects);
+		newTargetObjects.remove(target);
+		return new MultiTargetRelationalValue(this.attribute, targetObjects);
+	}
+	
 	@Override
 	public void setValue(int v) {
 		throw new UnsupportedOperationException(new Error("Cannot set relation value to a value to an int value"));
@@ -61,9 +99,11 @@ public class MultiTargetRelationalValue extends Value {
 	}
 
 	@Override
+	@Deprecated
 	public void setValue(String v) {
+		throw new UnsupportedOperationException(new Error("Cannot set relation value to a value to a double value")); /*
 		this.targetObjects.clear();
-		this.targetObjects.add(v);
+		this.targetObjects.add(v);*/
 	}
 	
 	@Override
@@ -72,24 +112,33 @@ public class MultiTargetRelationalValue extends Value {
 	}
 	
 	@Override
+	@Deprecated
 	public void addRelationalTarget(String t) {
-		this.targetObjects.add(t);
+		throw new UnsupportedOperationException(new Error("Cannot set relation value to a value to a double value")); /*
+		this.targetObjects.add(t);*/
 	}
 	
 	@Override
+	@Deprecated
 	public void addAllRelationalTargets(Collection<String> targets) {
-		this.targetObjects.addAll(targets);
+		throw new UnsupportedOperationException(new Error("Cannot set relation value to a value to a double value")); /*
+		this.targetObjects.addAll(targets);*/
 	}
 	
 	
 	@Override
+	@Deprecated
 	public void clearRelationTargets() {
-		this.targetObjects.clear();
+		throw new UnsupportedOperationException(new Error("Cannot set relation value to a value to a double value")); /*
+		this.targetObjects.clear();*/
 	}
 	
 	@Override
+	@Deprecated
 	public void removeRelationalTarget(String target) {
-		this.targetObjects.remove(target);
+		throw new UnsupportedOperationException(new Error("Cannot set relation value to a value to a double value"));
+		/*
+		this.targetObjects.remove(target);*/
 	}
 
 	@Override
@@ -121,6 +170,19 @@ public class MultiTargetRelationalValue extends Value {
 		}
 		return buf.toString();
 	}
+	
+	@Override
+	public StringBuilder buildStringVal(StringBuilder builder) {
+		boolean didFirst = false;
+		for(String t : this.targetObjects){
+			if(didFirst){
+				builder.append(";");
+			}
+			builder.append(t);
+			didFirst = true;
+		}
+		return builder;
+	}
 
 	@Override
 	public double getNumericRepresentation() {
@@ -130,6 +192,9 @@ public class MultiTargetRelationalValue extends Value {
 	
 	@Override
 	public boolean equals(Object obj){
+		if (this == obj) {
+			return true;
+		}
 		
 		if(!(obj instanceof MultiTargetRelationalValue)){
 			return false;
@@ -144,8 +209,11 @@ public class MultiTargetRelationalValue extends Value {
 			return false;
 		}
 		
-		for(String t : this.targetObjects){
-			if(!op.targetObjects.contains(t)){
+		Iterator<String> thisIt = this.targetObjects.iterator();
+		Iterator<String> thatIt = op.targetObjects.iterator();
+		
+		while(thisIt.hasNext()) {
+			if (!thisIt.next().equals(thatIt.next())) {
 				return false;
 			}
 		}

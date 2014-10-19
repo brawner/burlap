@@ -34,6 +34,11 @@ public class ActionTransitions {
 		this.transitions = this.getHashedTransitions(transitions, hashingFactory);
 	}
 	
+	@Override
+	public String toString() {
+		return this.ga.toString();
+	}
+	
 	
 	/**
 	 * Constructs the the ActionTransitions from a source state, and an action to apply in that source state.

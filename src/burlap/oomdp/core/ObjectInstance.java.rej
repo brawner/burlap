@@ -1,0 +1,46 @@
+***************
+*** 436,459 ****
+  	 * @return true if this object instance and obj have identical value assignments; false otherwise.
+  	 */
+  	public boolean valueEquals(ObjectInstance obj){
+- 		if (this == obj) {
+- 			return true;
+- 		}
+- 		if(!obClass.name.equals(obj.obClass.name)){
+  			return false;
+  		}
+  	
+- 		for(Value v : values){
+- 		
+- 			Value ov = obj.getValueForAttribute(v.attName());
+- 			if(!v.equals(ov)){
+  				return false;
+  			}
+- 		
+  		}
+- 		
+  		return true;
+- 	
+  	}
+  	
+  	
+--- 551,569 ----
+  	 * @return true if this object instance and obj have identical value assignments; false otherwise.
+  	 */
+  	public boolean valueEquals(ObjectInstance obj){
++ 		if (!this.equals(obj)) {
+  			return false;
+  		}
+  	
++ 		Value v, ov;
++ 		for (int i = 0; i < this.values.size(); i++) {
++ 			v = this.values.get(i);
++ 			ov = obj.values.get(i);
++ 			if (!v.equals(ov)) {
+  				return false;
+  			}
+  		}
+  		return true;
+  	}
+  	
+  	

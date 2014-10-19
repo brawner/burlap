@@ -162,11 +162,11 @@ public class BFSRTDP extends RTDP {
 			
 			//otherwise do expansion
 			//if we reached a goal state then then BFS completes and we do not need to add terminal's children
-			if(this.satisfiesGoal(sh.s)){
+			if(this.satisfiesGoal(sh.getState())){
 				break;
 			}
 			
-			if(this.tf.isTerminal(sh.s)){
+			if(this.tf.isTerminal(sh.getState())){
 				continue; //cannot act from here
 			}
 			

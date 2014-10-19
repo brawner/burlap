@@ -152,11 +152,11 @@ public abstract class ValueFunctionPlanner extends OOMDPPlanner implements QComp
 	 * @return the value function evaluation of the given state.
 	 */
 	public double value(StateHashTuple sh){
-		if(this.tf.isTerminal(sh.s)){
+		if(this.tf.isTerminal(sh.getState())){
 			return 0.;
 		}
 		Double V = valueFunction.get(sh);
-		double v = V == null ? this.getDefaultValue(sh.s) : V;
+		double v = V == null ? this.getDefaultValue(sh.getState()) : V;
 		return v;
 	}
 	
@@ -188,14 +188,14 @@ public abstract class ValueFunctionPlanner extends OOMDPPlanner implements QComp
 		
 		
 		if(this.containsParameterizedActions && !this.domain.isObjectIdentifierDependent()){
-			matching = sh.s.getObjectMatchingTo(indexSH.s, false);
+			matching = sh.getState().getObjectMatchingTo(indexSH.getState(), false);
 		}
 		
 		
 		List <QValue> res = new ArrayList<QValue>();
 		for(Action a : actions){
 			//List <GroundedAction> applications = s.getAllGroundedActionsFor(a);
-			List<GroundedAction> applications = a.getAllApplicableGroundedActions(s);
+			List<GroundedAction> applications = a.getAllApplicableGroundedActions(sh.getState());
 			for(GroundedAction ga : applications){
 				res.add(this.getQ(sh, ga, matching));
 			}
@@ -223,7 +223,7 @@ public abstract class ValueFunctionPlanner extends OOMDPPlanner implements QComp
 			}
 			
 			if(this.containsParameterizedActions && !this.domain.isObjectIdentifierDependent() && a.parametersAreObjects()){
-				matching = sh.s.getObjectMatchingTo(indexSH.s, false);
+				matching = sh.getState().getObjectMatchingTo(indexSH.getState(), false);
 			}
 			return this.getQ(sh, (GroundedAction)a, matching);
 			
@@ -252,7 +252,7 @@ public abstract class ValueFunctionPlanner extends OOMDPPlanner implements QComp
 		List <State> result = new ArrayList<State>(valueFunction.size());
 		Set<StateHashTuple> shs = valueFunction.keySet();
 		for(StateHashTuple sh : shs){
-			result.add(sh.s);
+			result.add(sh.getState());
 		}
 		return result;
 	}
@@ -285,11 +285,11 @@ public abstract class ValueFunctionPlanner extends OOMDPPlanner implements QComp
 		}
 		
 		double q = 0.;
-		if(!this.tf.isTerminal(sh.s)){
-			q = this.computeQ(sh.s, matchingAt);
+		if(!this.tf.isTerminal(sh.getState())){
+			q = this.computeQ(sh.getState(), matchingAt);
 		}
 		
-		return new QValue(sh.s, a, q);
+		return new QValue(sh.getState(), a, q);
 	}
 	
 	
@@ -316,12 +316,12 @@ public abstract class ValueFunctionPlanner extends OOMDPPlanner implements QComp
 			for(Action a : actions){
 				gas.addAll(sh.s.getAllGroundedActionsFor(a));
 			}*/
-			List<GroundedAction> gas = Action.getAllApplicableGroundedActionsFromActionList(this.actions, sh.s);
+			List<GroundedAction> gas = Action.getAllApplicableGroundedActionsFromActionList(this.actions, sh.getState());
 			
 			//now add transitions
 			allTransitions = new ArrayList<ActionTransitions>(gas.size());
 			for(GroundedAction ga : gas){
-				ActionTransitions at = new ActionTransitions(sh.s, ga, hashingFactory);
+				ActionTransitions at = new ActionTransitions(sh.getState(), ga, hashingFactory);
 				allTransitions.add(at);
 			}
 			
@@ -370,7 +370,7 @@ public abstract class ValueFunctionPlanner extends OOMDPPlanner implements QComp
 	 */
 	protected double performBellmanUpdateOn(StateHashTuple sh){
 		
-		if(this.tf.isTerminal(sh.s)){
+		if(this.tf.isTerminal(sh.getState())){
 			//terminal states always have a state value of 0
 			valueFunction.put(sh, 0.);
 			return 0.;
@@ -383,7 +383,7 @@ public abstract class ValueFunctionPlanner extends OOMDPPlanner implements QComp
 		
 			List<ActionTransitions> transitions = this.getActionsTransitions(sh);
 			for(ActionTransitions at : transitions){
-				double q = this.computeQ(sh.s, at);
+				double q = this.computeQ(sh.getState(), at);
 				if(q > maxQ){
 					maxQ = q;
 				}
@@ -393,7 +393,7 @@ public abstract class ValueFunctionPlanner extends OOMDPPlanner implements QComp
 		else{
 			
 			//List <GroundedAction> gas = sh.s.getAllGroundedActionsFor(this.actions);
-			List<GroundedAction> gas = Action.getAllApplicableGroundedActionsFromActionList(this.actions, sh.s);
+			List<GroundedAction> gas = Action.getAllApplicableGroundedActionsFromActionList(this.actions, sh.getState());
 			for(GroundedAction ga : gas){
 				double q = this.computeQ(sh, ga);
 				if(q > maxQ){
@@ -421,26 +421,26 @@ public abstract class ValueFunctionPlanner extends OOMDPPlanner implements QComp
 	protected double performFixedPolicyBellmanUpdateOn(StateHashTuple sh, Policy p){
 		
 		
-		if(this.tf.isTerminal(sh.s)){
+		if(this.tf.isTerminal(sh.getState())){
 			//terminal states always have a state value of 0
 			valueFunction.put(sh, 0.);
 			return 0.;
 		}
 		
 		double weightedQ = 0.;
-		List<ActionProb> policyDistribution = p.getActionDistributionForState(sh.s);
+		List<ActionProb> policyDistribution = p.getActionDistributionForState(sh.getState());
 		
 		if(this.useCachedTransitions){
 			
 			List<ActionTransitions> transitions = this.getActionsTransitions(sh);
 			for(ActionTransitions at : transitions){
 				
-				double policyProb = Policy.getProbOfActionGivenDistribution(sh.s, at.ga, policyDistribution);
+				double policyProb = Policy.getProbOfActionGivenDistribution(sh.getState(), at.ga, policyDistribution);
 				if(policyProb == 0.){
 					continue; //doesn't contribute
 				}
 				
-				double q = this.computeQ(sh.s, at);
+				double q = this.computeQ(sh.getState(), at);
 				weightedQ += policyProb*q;
 				
 			}
@@ -449,10 +449,10 @@ public abstract class ValueFunctionPlanner extends OOMDPPlanner implements QComp
 		else{
 			
 			//List <GroundedAction> gas = sh.s.getAllGroundedActionsFor(this.actions);
-			List<GroundedAction> gas = Action.getAllApplicableGroundedActionsFromActionList(this.actions, sh.s);
+			List<GroundedAction> gas = Action.getAllApplicableGroundedActionsFromActionList(this.actions, sh.getState());
 			for(GroundedAction ga : gas){
 				
-				double policyProb = Policy.getProbOfActionGivenDistribution(sh.s, ga, policyDistribution);
+				double policyProb = Policy.getProbOfActionGivenDistribution(sh.getState(), ga, policyDistribution);
 				if(policyProb == 0.){
 					continue; //doesn't contribute
 				}
@@ -507,7 +507,7 @@ public abstract class ValueFunctionPlanner extends OOMDPPlanner implements QComp
 				double vp = this.value(tp.sh);
 				
 				double discount = this.gamma;
-				double r = rf.reward(s, trans.ga, tp.sh.s);
+				double r = rf.reward(s, trans.ga, tp.sh.getState());
 				q += tp.p * (r + (discount * vp));
 				
 			}
@@ -534,10 +534,10 @@ public abstract class ValueFunctionPlanner extends OOMDPPlanner implements QComp
 		if(ga.action instanceof Option){
 			
 			Option o = (Option)ga.action;
-			double expectedR = o.getExpectedRewards(sh.s, ga.params);
+			double expectedR = o.getExpectedRewards(sh.getState(), ga.params);
 			q += expectedR;
 			
-			List <TransitionProbability> tps = o.getTransitions(sh.s, ga.params);
+			List <TransitionProbability> tps = o.getTransitions(sh.getState(), ga.params);
 			for(TransitionProbability tp : tps){
 				double vp = this.value(tp.s);
 				
@@ -549,12 +549,12 @@ public abstract class ValueFunctionPlanner extends OOMDPPlanner implements QComp
 		}
 		else{
 			
-			List <TransitionProbability> tps = ga.action.getTransitions(sh.s, ga.params);
+			List <TransitionProbability> tps = ga.action.getTransitions(sh.getState(), ga.params);
 			for(TransitionProbability tp : tps){
 				double vp = this.value(tp.s);
 				
 				double discount = this.gamma;
-				double r = rf.reward(sh.s, ga, tp.s);
+				double r = rf.reward(sh.getState(), ga, tp.s);
 				q += tp.p * (r + (discount * vp));
 			}
 			

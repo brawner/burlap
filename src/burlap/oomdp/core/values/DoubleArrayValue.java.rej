@@ -1,0 +1,41 @@
+***************
+*** 17,32 ****
+   */
+  public class DoubleArrayValue extends Value{
+  
+- 	protected double [] doubleArray;
+  	
+  	public DoubleArrayValue(Attribute attribute) {
+  		super(attribute);
+  	}
+  	
+  	public DoubleArrayValue(Value v){
+  		super(v);
+  		this.doubleArray = ((DoubleArrayValue)v).doubleArray.clone();
+  	}
+  
+  	@Override
+  	public Value copy() {
+--- 18,39 ----
+   */
+  public class DoubleArrayValue extends Value{
+  
++ 	private final double [] doubleArray;
+  	
+  	public DoubleArrayValue(Attribute attribute) {
+  		super(attribute);
++ 		this.doubleArray = null;
+  	}
+  	
+  	public DoubleArrayValue(Value v){
+  		super(v);
+  		this.doubleArray = ((DoubleArrayValue)v).doubleArray.clone();
+  	}
++ 	
++ 	public DoubleArrayValue(Attribute attribute, double[] arry) {
++ 		super(attribute);
++ 		this.doubleArray = arry.clone();
++ 	}
+  
+  	@Override
+  	public Value copy() {

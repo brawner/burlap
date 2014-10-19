@@ -19,9 +19,9 @@ import burlap.oomdp.core.State;
  */
 public abstract class StateHashTuple {
 
-	public State								s;
-	protected int								hashCode;
-	protected boolean							needToRecomputeHashCode;
+	private final State							s;
+	private final int 						hashCode;
+	//protected final boolean						needToRecomputeHashCode;
 	
 	
 	
@@ -30,15 +30,20 @@ public abstract class StateHashTuple {
 	 * @param s the state object this object will wrap
 	 */
 	public StateHashTuple(State s){
-		this.s = s;
-		needToRecomputeHashCode = true;
+		this.s = s.copy();
+		this.hashCode = this.computeHashCode();
+		//needToRecomputeHashCode = true;
 	}
 	
+	@Override
+	public String toString() {
+		return Integer.toString(this.hashCode());
+	}
 	
 	/**
 	 * This method computes the hashCode for this object and saves it to the <code>hashCode</code> field beloning to the abstract class.
 	 */
-	public abstract void computeHashCode();
+	public abstract int computeHashCode();
 	
 	
 	@Override
@@ -50,16 +55,20 @@ public abstract class StateHashTuple {
 			return false;
 		}
 		StateHashTuple o = (StateHashTuple)other;
-		return s.equals(o.s);
+		return getState().equals(o.getState());
 		
 	}
 	
 	@Override
 	public int hashCode(){
-		if(needToRecomputeHashCode){
-			this.computeHashCode();
-		}
+		//if(needToRecomputeHashCode){
+		//	this.computeHashCode();
+		//}
 		return hashCode;
+	}
+	
+	public State getState() {
+		return s.copy();
 	}
 	
 }

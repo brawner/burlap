@@ -146,7 +146,7 @@ public class DynamicWeightedAStar extends AStar {
 			}
 			
 			
-			State s = node.s.s;
+			State s = node.s.getState();
 			if(gc.satisfies(s)){
 				lastVistedNode = node;
 				break;
@@ -218,7 +218,7 @@ public class DynamicWeightedAStar extends AStar {
 		int d = 0;
 		if(parentNode != null){
 			double pCumR = cumulatedRewardMap.get(parentNode.s);
-			r = rf.reward(parentNode.s.s, generatingAction, successorState.s);
+			r = rf.reward(parentNode.s.getState(), generatingAction, successorState.getState());
 			cumR = pCumR + r;
 			
 			int pD = depthMap.get(parentNode.s);
@@ -231,7 +231,7 @@ public class DynamicWeightedAStar extends AStar {
 			}
 		}
 		
-		double H  = heuristic.h(successorState.s);
+		double H  = heuristic.h(successorState.getState());
 		lastComputedCumR = cumR;
 		lastComputedDepth = d;
 		double weightedE = this.epsilon * this.epsilonWeight(d);

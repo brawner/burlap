@@ -145,7 +145,7 @@ public class VIModelPlanner implements ModelPlanner {
 		
 		//seed state space from what we know exists
 		for(StateHashTuple sh : this.observedStates){
-			this.vi.performReachabilityFrom(sh.s);
+			this.vi.performReachabilityFrom(sh.getState());
 		}
 		
 		//run vi

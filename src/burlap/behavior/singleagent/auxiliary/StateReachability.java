@@ -55,7 +55,7 @@ public class StateReachability {
 		Set <StateHashTuple> hashedStates = getReachableHashedStates(from, inDomain, usingHashFactory, tf);
 		List <State> states = new ArrayList<State>(hashedStates.size());
 		for(StateHashTuple sh : hashedStates){
-			states.add(sh.s);
+			states.add(sh.getState());
 		}
 		
 		return states;
@@ -98,14 +98,14 @@ public class StateReachability {
 			StateHashTuple sh = openList.poll();
 			
 			
-			if(tf.isTerminal(sh.s)){
+			if(tf.isTerminal(sh.getState())){
 				continue; //don't expand
 			}
 			
 			//List <GroundedAction> gas = sh.s.getAllGroundedActionsFor(actions);
-			List<GroundedAction> gas = Action.getAllApplicableGroundedActionsFromActionList(actions, sh.s);
+			List<GroundedAction> gas = Action.getAllApplicableGroundedActionsFromActionList(actions, sh.getState());
 			for(GroundedAction ga : gas){
-				List <TransitionProbability> tps = ga.action.getTransitions(sh.s, ga.params);
+				List <TransitionProbability> tps = ga.action.getTransitions(sh.getState(), ga.params);
 				for(TransitionProbability tp : tps){
 					StateHashTuple nsh = usingHashFactory.hashState(tp.s);
 					nGenerated++;

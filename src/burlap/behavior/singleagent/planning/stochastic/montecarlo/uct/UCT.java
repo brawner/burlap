@@ -189,9 +189,9 @@ public class UCT extends OOMDPPlanner {
 			return 0.;
 		}
 		
-		if(tf.isTerminal(node.state.s)){
+		if(tf.isTerminal(node.state.getState())){
 			if(goalCondition != null){
-				if(goalCondition.satisfies(node.state.s)){
+				if(goalCondition.satisfies(node.state.getState())){
 					foundGoal = true;
 					foundGoalOnRollout = true;
 				}
@@ -213,8 +213,8 @@ public class UCT extends OOMDPPlanner {
 		
 		
 		//sample the action
-		StateHashTuple shprime = this.stateHash(anode.action.executeIn(node.state.s));
-		double r = rf.reward(node.state.s, anode.action, shprime.s);
+		StateHashTuple shprime = this.stateHash(anode.action.executeIn(node.state.getState()));
+		double r = rf.reward(node.state.getState(), anode.action, shprime.getState());
 		int depthChange = 1;
 		if(!anode.action.action.isPrimitive()){
 			Option o = (Option)anode.action.action;
@@ -346,7 +346,7 @@ public class UCT extends OOMDPPlanner {
 		if(untriedNodes){
 			List <UCTActionNode> candidates2 = new ArrayList<UCTActionNode>(candidates.size());
 			for(UCTActionNode anode : candidates){
-				StateHashTuple sample = this.stateHash(anode.action.executeIn(snode.state.s));
+				StateHashTuple sample = this.stateHash(anode.action.executeIn(snode.state.getState()));
 				if(!uniqueStatesInTree.contains(sample)){
 					candidates2.add(anode);
 				}

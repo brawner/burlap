@@ -123,12 +123,12 @@ public class IDAStar extends DeterministicPlanner {
 		if(this.planEndNode(lastNode)){
 			return lastNode; //succeed condition
 		}
-		if(this.tf.isTerminal(lastNode.s.s)){
+		if(this.tf.isTerminal(lastNode.s.getState())){
 			return null; //treat like a dead end if we're at a terminal state
 		}
 		
 		
-		State s = lastNode.s.s;
+		State s = lastNode.s.getState();
 		
 		//get all actions
 		/*List <GroundedAction> gas = new ArrayList<GroundedAction>();
@@ -192,7 +192,7 @@ public class IDAStar extends DeterministicPlanner {
 	 */
 	protected boolean planEndNode(SearchNode node){
 		
-		if(gc.satisfies(node.s.s)){
+		if(gc.satisfies(node.s.getState())){
 			return true;
 		}
 		

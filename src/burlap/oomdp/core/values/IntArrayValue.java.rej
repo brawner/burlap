@@ -1,0 +1,43 @@
+***************
+*** 16,32 ****
+   */
+  public class IntArrayValue extends Value {
+  
+- 	protected int [] intArray = null;
+  	
+  	
+  	public IntArrayValue(Attribute attribute) {
+  		super(attribute);
+  	}
+  	
+  	public IntArrayValue(Value v){
+  		super(v);
+  		this.intArray = ((IntArrayValue)v).intArray.clone();
+  	}
+  
+  	@Override
+  	public Value copy() {
+--- 17,39 ----
+   */
+  public class IntArrayValue extends Value {
+  
++ 	private final int [] intArray;
+  	
+  	
+  	public IntArrayValue(Attribute attribute) {
+  		super(attribute);
++ 		this.intArray = null;
+  	}
+  	
+  	public IntArrayValue(Value v){
+  		super(v);
+  		this.intArray = ((IntArrayValue)v).intArray.clone();
+  	}
++ 	
++ 	public IntArrayValue(Attribute attribute, int[] intArray) {
++ 		super(attribute);
++ 		this.intArray = intArray.clone();
++ 	}
+  
+  	@Override
+  	public Value copy() {
