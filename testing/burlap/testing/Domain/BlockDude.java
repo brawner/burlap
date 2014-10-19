@@ -127,71 +127,73 @@ public class BlockDude implements DomainGenerator {
 	
 	public static State getCleanState(Domain domain, List <Integer> platformX, List <Integer> platformH, int nb){
 		
-		State s = new State();
-		
+		List<ObjectInstance> objects = new ArrayList<ObjectInstance>();
 		//start by creating the platform objects
 		for(int i = 0; i < platformX.size(); i++){
 			int x = platformX.get(i);
 			int h = platformH.get(i);
 			
 			ObjectInstance plat = new ObjectInstance(domain.getObjectClass(CLASSPLATFORM), CLASSPLATFORM+x);
-			plat.setValue(ATTX, x);
-			plat.setValue(ATTHEIGHT, h);
+			plat = plat.changeValue(ATTX, x);
+			plat = plat.changeValue(ATTHEIGHT, h);
 			
-			s.addObject(plat);
+			objects.add(plat);
 			
 		}
 		
 		//create n blocks
 		for(int i = 0; i < nb; i++){
-			s.addObject(new ObjectInstance(domain.getObjectClass(CLASSBLOCK), CLASSBLOCK+i));
+			objects.add(new ObjectInstance(domain.getObjectClass(CLASSBLOCK), CLASSBLOCK+i));
 		}
 		
 		//create exit
-		s.addObject(new ObjectInstance(domain.getObjectClass(CLASSEXIT), CLASSEXIT+0));
+		objects.add(new ObjectInstance(domain.getObjectClass(CLASSEXIT), CLASSEXIT+0));
 		
 		//create agent
-		s.addObject(new ObjectInstance(domain.getObjectClass(CLASSAGENT), CLASSAGENT+0));
+		objects.add(new ObjectInstance(domain.getObjectClass(CLASSAGENT), CLASSAGENT+0));
 		
 		
-		return s;
+		return new State(objects);
 		
 	}
 	
 	
-	public static void setAgent(State s, int x, int y, int dir, int holding){
+	public static State setAgent(State s, int x, int y, int dir, int holding){
 		ObjectInstance agent = s.getObjectsOfTrueClass(CLASSAGENT).get(0);
-		agent.setValue(ATTX, x);
-		agent.setValue(ATTY, y);
-		agent.setValue(ATTDIR, dir);
-		agent.setValue(ATTHOLD, holding);
+		ObjectInstance newAgent = agent.changeValue(ATTX, x);
+		newAgent = newAgent.changeValue(ATTY, y);
+		newAgent = newAgent.changeValue(ATTDIR, dir);
+		newAgent = newAgent.changeValue(ATTHOLD, holding);
+		return s.replaceObject(agent, newAgent);
 	}
 	
 	
-	public static void setExit(State s, int x, int y){
+	public static State setExit(State s, int x, int y){
 		ObjectInstance exit = s.getObjectsOfTrueClass(CLASSEXIT).get(0);
-		exit.setValue(ATTX, x);
-		exit.setValue(ATTY, y);
+		ObjectInstance newExit = exit.changeValue(ATTX, x);
+		newExit = newExit.changeValue(ATTY, y);
+		return s.replaceObject(exit, newExit);
 	}
 	
-	public static void setBlock(State s, int i, int x, int y){
+	public static State setBlock(State s, int i, int x, int y){
 		ObjectInstance block = s.getObjectsOfTrueClass(CLASSBLOCK).get(i);
-		block.setValue(ATTX, x);
-		block.setValue(ATTY, y);
+		ObjectInstance newBlock = block.changeValue(ATTX, x);
+		newBlock = newBlock.changeValue(ATTY, y);
+		return s.replaceObject(block, newBlock);
 	}
 	
 	
 	
-	public static void moveHorizontally(State s, int dx){
+	public static State moveHorizontally(State s, int dx){
 		
 		ObjectInstance agent = s.getObjectsOfTrueClass(CLASSAGENT).get(0);
-		
+		ObjectInstance newAgent = agent;
 		//always set direction
 		if(dx > 0){
-			agent.setValue(ATTDIR, 1);
+			newAgent = newAgent.changeValue(ATTDIR, 1);
 		}
 		else{
-			agent.setValue(ATTDIR, 0);
+			newAgent = newAgent.changeValue(ATTDIR, 0);
 		}
 		
 		
@@ -204,23 +206,23 @@ public class BlockDude implements DomainGenerator {
 		
 		//can only move if new position is below agent height
 		if(heightAtNX >= ay){
-			return ; //do nothing; walled off
+			return s; //do nothing; walled off
 		}
 		
 		int ny = heightAtNX + 1; //stand on top of stack
 		
-		agent.setValue(ATTX, nx);
-		agent.setValue(ATTY, ny);
+		newAgent = newAgent.changeValue(ATTX, nx);
+		newAgent = newAgent.changeValue(ATTY, ny);
 		
 		
-		
-		moveCarriedBlockToNewAgentPosition(s, agent, ax, ay, nx, ny);
+		s = s.replaceObject(agent, newAgent);
+		return moveCarriedBlockToNewAgentPosition(s, agent, ax, ay, nx, ny);
 		
 		
 	}
 	
 	
-	public static void moveUp(State s){
+	public static State moveUp(State s){
 		
 		ObjectInstance agent = s.getObjectsOfTrueClass(CLASSAGENT).get(0);
 		
@@ -239,24 +241,22 @@ public class BlockDude implements DomainGenerator {
 		
 		//in order to move up, the height of world in new x position must be at the same current agent position
 		if(heightAtNX != ay){
-			return ; //not a viable move up condition, so do nothing
+			return s; //not a viable move up condition, so do nothing
 		}
 		
-		agent.setValue(ATTX, nx);
-		agent.setValue(ATTY, ny);
-		
-		moveCarriedBlockToNewAgentPosition(s, agent, ax, ay, nx, ny);
-		
-		
+		ObjectInstance newAgent = agent.changeValue(ATTX, nx);
+		newAgent = newAgent.changeValue(ATTY, ny);
+		s = s.replaceObject(agent, newAgent);
+		return moveCarriedBlockToNewAgentPosition(s, agent, ax, ay, nx, ny);
 	}
 	
-	public static void pickupBlock(State s){
+	public static State pickupBlock(State s){
 		
 		ObjectInstance agent = s.getObjectsOfTrueClass(CLASSAGENT).get(0);
 		
 		int holding = agent.getDiscValForAttribute(ATTHOLD);
 		if(holding == 1){
-			return; //already holding a block
+			return s; //already holding a block
 		}
 		
 		int ax = agent.getDiscValForAttribute(ATTX);
@@ -276,26 +276,27 @@ public class BlockDude implements DomainGenerator {
 			//make sure that block is the top of the world, otherwise something is stacked above it and you cannot pick it up
 			int mxh = totalHeightAtXPos(s, bx);
 			if(mxh > block.getDiscValForAttribute(ATTY)){
-				return;
+				return s;
 			}
 			
-			block.setValue(ATTX, ax);
-			block.setValue(ATTY, ay+1);
+			ObjectInstance newBlock = block.changeValue(ATTX, ax);
+			newBlock = newBlock.changeValue(ATTY, ay+1);
 			
-			agent.setValue(ATTHOLD, 1);
-			
+			ObjectInstance newAgent = agent.changeValue(ATTHOLD, 1);
+			s = s.replaceObject(block, newBlock);
+			s = s.replaceObject(agent, newAgent);
 		}
 		
-		
+		return s;
 	}
 	
-	public static void putdownBlock(State s){
+	public static State putdownBlock(State s){
 		
 		ObjectInstance agent = s.getObjectsOfTrueClass(CLASSAGENT).get(0);
 		
 		int holding = agent.getDiscValForAttribute(ATTHOLD);
 		if(holding == 0){
-			return; //not holding a block
+			return s; //not holding a block
 		}
 		
 		int ax = agent.getDiscValForAttribute(ATTX);
@@ -311,26 +312,31 @@ public class BlockDude implements DomainGenerator {
 		
 		int heightAtNX = totalHeightAtXPos(s, nx);
 		if(heightAtNX > ay){
-			return; //cannot drop block if walled off from throw position
+			return s; //cannot drop block if walled off from throw position
 		}
 		
 		ObjectInstance block = getBlockAt(s, ax, ay+1); //carried block is one unit above agent
-		block.setValue(ATTX, nx);
-		block.setValue(ATTY, heightAtNX+1); //stacked on top of this position
+		ObjectInstance newBlock = block.changeValue(ATTX, nx);
+		newBlock = newBlock.changeValue(ATTY, heightAtNX+1); //stacked on top of this position
 		
-		agent.setValue(ATTHOLD, 0);
+		ObjectInstance newAgent = agent.changeValue(ATTHOLD, 0);
+		s = s.replaceObject(block, newBlock);
+		s = s.replaceObject(agent, newAgent);
+		return s;
 		
 	}
 	
 	
-	private static void moveCarriedBlockToNewAgentPosition(State s, ObjectInstance agent, int ax, int ay, int nx, int ny){
+	private static State moveCarriedBlockToNewAgentPosition(State s, ObjectInstance agent, int ax, int ay, int nx, int ny){
 		int holding = agent.getDiscValForAttribute(ATTHOLD);
 		if(holding == 1){
 			//then move the box being carried too
 			ObjectInstance carriedBlock = getBlockAt(s, ax, ay+1); //carried block is one unit above agent
-			carriedBlock.setValue(ATTX, nx);
-			carriedBlock.setValue(ATTY, ny+1);
+			ObjectInstance newBlock = carriedBlock.changeValue(ATTX, nx);
+			newBlock = newBlock.changeValue(ATTY, ny+1);
+			return s.replaceObject(carriedBlock, newBlock);
 		}
+		return s;
 	}
 	
 	private static ObjectInstance getBlockAt(State s, int x, int y){
@@ -420,8 +426,7 @@ public class BlockDude implements DomainGenerator {
 		
 		@Override
 		protected State performActionHelper(State st, String[] params) {
-			moveUp(st);
-			return st;
+			return moveUp(st);
 		}
 		
 		
@@ -465,8 +470,7 @@ public class BlockDude implements DomainGenerator {
 
 		@Override
 		protected State performActionHelper(State st, String[] params) {
-			moveHorizontally(st, 1);
-			return st;
+			return moveHorizontally(st, 1);
 		}
 		
 		
@@ -510,8 +514,7 @@ public class BlockDude implements DomainGenerator {
 
 		@Override
 		protected State performActionHelper(State st, String[] params) {
-			moveHorizontally(st, -1);
-			return st;
+			return moveHorizontally(st, -1);
 		}
 		
 		
@@ -560,8 +563,7 @@ public class BlockDude implements DomainGenerator {
 
 		@Override
 		protected State performActionHelper(State st, String[] params) {
-			pickupBlock(st);
-			return st;
+			return pickupBlock(st);
 		}
 		
 		
@@ -608,8 +610,7 @@ public class BlockDude implements DomainGenerator {
 
 		@Override
 		protected State performActionHelper(State st, String[] params) {
-			putdownBlock(st);
-			return st;
+			return putdownBlock(st);
 		}
 		
 		

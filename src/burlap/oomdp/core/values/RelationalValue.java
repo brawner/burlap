@@ -20,7 +20,7 @@ public class RelationalValue extends Value {
 	 * A string representing the object target of this value. Targets are specified by the object name identifier.
 	 * If the relational target is unset, then this value will be set to the empty string "", which is the default value.
 	 */
-	protected String		target = "";
+	private final String		target;
 	
 	
 	/**
@@ -43,9 +43,34 @@ public class RelationalValue extends Value {
 		this.target = rv.target;
 	}
 	
+	public RelationalValue(Attribute attribute, String target) {
+		super(attribute);
+		this.target = target;
+	}
+	
 	@Override
 	public Value copy() {
 		return new RelationalValue(this);
+	}
+	
+	@Override
+	public Value changeValue(String v) {
+		return new RelationalValue(this.attribute, v);
+	}
+	
+	@Override
+	public Value appendRelationalTarget(String v) {
+		return new RelationalValue(this.attribute, v);
+	}
+	
+	@Override
+	public Value removeAllRelationalTargets(){
+		return new RelationalValue(attribute);
+	}
+	
+	@Override
+	public Value replaceRelationalTarget(String target){
+		return new RelationalValue(this.attribute);
 	}
 	
 	@Override
@@ -64,13 +89,17 @@ public class RelationalValue extends Value {
 	}
 
 	@Override
+	@Deprecated
 	public void setValue(String v) {
-		this.target = v;
+		throw new UnsupportedOperationException("Value is relational; cannot be set to a boolean value.");
+		//this.target = v;
 	}
 	
 	@Override
+	@Deprecated
 	public void addRelationalTarget(String t) {
-		this.target = t;
+		throw new UnsupportedOperationException("Value is relational; cannot be set to a boolean value.");
+		//this.target = t;
 	}
 	
 	@Override
@@ -79,15 +108,19 @@ public class RelationalValue extends Value {
 	}
 	
 	@Override
+	@Deprecated
 	public void clearRelationTargets() {
-		this.target = "";
+		throw new UnsupportedOperationException("Value is relational; cannot be set to a boolean value.");
+		//this.target = "";
 	}
 	
 	@Override
+	@Deprecated
 	public void removeRelationalTarget(String target) {
-		if(this.target.equals(target)){
+		throw new UnsupportedOperationException("Value is relational; cannot be set to a boolean value.");
+		/*if(this.target.equals(target)){
 			this.target = "";
-		}
+		}*/
 	}
 
 	@Override
@@ -111,6 +144,11 @@ public class RelationalValue extends Value {
 	public String getStringVal() {
 		return this.target;
 	}
+	
+	@Override
+	public StringBuilder buildStringVal(StringBuilder builder) {
+		return builder.append(this.target);
+	}
 
 	@Override
 	public double getNumericRepresentation() {
@@ -120,6 +158,9 @@ public class RelationalValue extends Value {
 	
 	@Override
 	public boolean equals(Object obj){
+		if (this == obj) {
+			return true;
+		}
 		
 		if(!(obj instanceof RelationalValue)){
 			return false;

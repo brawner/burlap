@@ -1,5 +1,6 @@
 package burlap.oomdp.auxiliary.common;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import burlap.oomdp.auxiliary.StateParser;
@@ -60,9 +61,9 @@ public class UniversalStateParser implements StateParser {
 	@Override
 	public State stringToState(String str) {
 		
-		State s = new State();
-		
 		String [] obcomps = str.split("##bo\n");
+		
+		List<ObjectInstance> newObjects = new ArrayList<ObjectInstance>();
 		for(int i = 1; i < obcomps.length; i++){ //first comp will be empty so skip it
 			
 			String [] obinst = obcomps[i].split("\n");
@@ -77,12 +78,12 @@ public class UniversalStateParser implements StateParser {
 				o.setValue(attName, attV);
 			}
 			
-			s.addObject(o);
+			newObjects.add(o);
 			
 		}
 		
 		
-		return s;
+		return new State(newObjects);
 	}
 
 }

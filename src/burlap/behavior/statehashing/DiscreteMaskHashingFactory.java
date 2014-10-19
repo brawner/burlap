@@ -85,7 +85,7 @@ public class DiscreteMaskHashingFactory extends DiscreteStateHashFactory {
 			}
 			else{
 				//then the user has specified no special attributes to use for equality as we must use it all
-				return this.s.equals(that.s);
+				return this.getState().equals(that.getState());
 			}
 			
 			Set<String> matchedObjects = new HashSet<String>();
@@ -93,8 +93,8 @@ public class DiscreteMaskHashingFactory extends DiscreteStateHashFactory {
 				
 				List <Attribute> attsToCheck = attMap.get(cname);
 				
-				List <ObjectInstance> theseObjects = this.s.getObjectsOfTrueClass(cname);
-				List <ObjectInstance> thoseObjects = that.s.getObjectsOfTrueClass(cname);
+				List <ObjectInstance> theseObjects = this.getState().getObjectsOfTrueClass(cname);
+				List <ObjectInstance> thoseObjects = that.getState().getObjectsOfTrueClass(cname);
 				
 				if(theseObjects.size() != thoseObjects.size()){
 					return false;

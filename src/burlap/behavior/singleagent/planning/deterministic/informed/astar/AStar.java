@@ -96,11 +96,11 @@ public class AStar extends BestFirst{
 		double r = 0.;
 		if(parentNode != null){
 			double pCumR = cumulatedRewardMap.get(parentNode.s);
-			r = rf.reward(parentNode.s.s, generatingAction, successorState.s);
+			r = rf.reward(parentNode.s.getState(), generatingAction, successorState.getState());
 			cumR = pCumR + r;
 		}
 		
-		double H  = heuristic.h(successorState.s);
+		double H  = heuristic.h(successorState.getState());
 		lastComputedCumR = cumR;
 		double F = cumR + H;
 		

@@ -306,8 +306,8 @@ public abstract class MAValueFunctionPlanner implements MultiAgentQSourceProvide
 				return stored;
 			}
 			double v = 0.;
-			if(!MAValueFunctionPlanner.this.terminalFunction.isTerminal(sh.s)){
-				v = MAValueFunctionPlanner.this.vInit.value(sh.s);
+			if(!MAValueFunctionPlanner.this.terminalFunction.isTerminal(sh.getState())){
+				v = MAValueFunctionPlanner.this.vInit.value(sh.getState());
 			}
 			this.valueFunction.put(sh, v);
 			return v;

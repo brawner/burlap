@@ -1,6 +1,15 @@
 package burlap.oomdp.core;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import burlap.oomdp.singleagent.Action;
 import burlap.oomdp.singleagent.GroundedAction;
@@ -11,34 +20,37 @@ import burlap.oomdp.singleagent.GroundedAction;
  * @author James MacGlashan
  *
  */
-public class State {
+public final class State {
 
 	
 	/**
 	 * List of observable object instances that define the state
 	 */
-	protected List <ObjectInstance>							objectInstances;
+	private final List <ObjectInstance>							objectInstances;
 	
 	/**
 	 * List of hidden object instances that facilitate domain dynamics and infer observable values
 	 */
-	protected List <ObjectInstance>							hiddenObjectInstances;
+	private final List <ObjectInstance>							hiddenObjectInstances;
 	
 	/**
 	 * Map from object names to their instances
 	 */
-	protected Map <String, ObjectInstance>					objectMap;
+	private final Map <String, Integer>					objectMap;
 	
 	
 	/**
 	 * Map of object instances organized by class name
 	 */
-	protected Map <String, List <ObjectInstance>>			objectIndexByTrueClass;
+	private final Map <String, List <Integer>>			objectIndexByTrueClass;
 
 	
 	
 	public State(){
-		this.initDataStructures();
+		this.objectInstances = Collections.unmodifiableList(new ArrayList<ObjectInstance>());
+		this.hiddenObjectInstances = Collections.unmodifiableList(new ArrayList<ObjectInstance>());
+		this.objectIndexByTrueClass = Collections.unmodifiableMap(new HashMap<String, List<Integer>>());
+		this.objectMap = Collections.unmodifiableMap(new HashMap<String, Integer>());
 	}
 	
 	
@@ -47,18 +59,40 @@ public class State {
 	 * @param s the source state from which this state will be initialized.
 	 */
 	public State(State s){
+		this.objectInstances = s.objectInstances;
+		this.hiddenObjectInstances = s.hiddenObjectInstances;
+		this.objectIndexByTrueClass = s.objectIndexByTrueClass;
+		this.objectMap = s.objectMap;
+	}
+	
+	public State(List<ObjectInstance> objects) {
+		Set<String> objectNames = new HashSet<String>();
+		List<ObjectInstance> objectInstances = this.createObjectLists(objects, objectNames);
+		this.objectInstances = Collections.unmodifiableList(objectInstances);
+		this.hiddenObjectInstances = Collections.unmodifiableList(new ArrayList<ObjectInstance>());
 		
+		Map<String, List<Integer>> objectIndexByTrueClass = 
+				this.buildObjectIndexByTrueClass(objectInstances, hiddenObjectInstances);
+		this.objectIndexByTrueClass = Collections.unmodifiableMap(objectIndexByTrueClass);
 		
-		this.initDataStructures();
+		Map<String, Integer> objectMap = this.buildObjectMap(objectInstances, hiddenObjectInstances);
+		this.objectMap = Collections.unmodifiableMap(objectMap);
+	}
+	
+	public State(List<ObjectInstance> objects, List<ObjectInstance> hiddenObjects) {
+		int initialCapacity = (int)((double)(objects.size() + hiddenObjects.size()) / 0.75 + 1);
+		Set<String> objectNames = new HashSet<String>(initialCapacity);
+		List<ObjectInstance> objectInstances = this.createObjectLists(objects, objectNames);
+		List<ObjectInstance> hiddenObjectsInstances = this.createObjectLists(hiddenObjects, objectNames);
+		this.objectInstances = Collections.unmodifiableList(objectInstances);
+		this.hiddenObjectInstances = Collections.unmodifiableList(hiddenObjectsInstances);
 		
-		for(ObjectInstance o : s.objectInstances){
-			this.addObject(o.copy());
-		}
+		Map<String, List<Integer>> objectIndexByTrueClass = 
+				this.buildObjectIndexByTrueClass(objectInstances, hiddenObjectInstances);
+		this.objectIndexByTrueClass = Collections.unmodifiableMap(objectIndexByTrueClass);
 		
-		for(ObjectInstance o : s.hiddenObjectInstances){
-			this.addObject(o.copy());
-		}
-		
+		Map<String, Integer> objectMap = this.buildObjectMap(objectInstances, hiddenObjectInstances);
+		this.objectMap = Collections.unmodifiableMap(objectMap);
 	}
 	
 	/**
@@ -67,6 +101,60 @@ public class State {
 	 */
 	public State copy(){
 		return new State(this);
+	}
+	
+	private final List<ObjectInstance> createObjectLists(List<ObjectInstance> objectList, Set<String> objectNames) {
+		List<ObjectInstance> objectInstances = new ArrayList<ObjectInstance>(objectList.size());
+		for (ObjectInstance object : objectList) {
+			if (objectNames.add(object.getName())) {
+				objectInstances.add(object);
+			}
+		}
+		return objectInstances;
+	}
+	
+	private final Map<String, List<Integer>> buildObjectIndexByTrueClass(List<ObjectInstance> objects, List<ObjectInstance> hiddenObjects) {
+		Map<String, List<Integer>> objectIndexByTrueClass = new HashMap<String, List<Integer>>();
+		this.addObjectListToMap(objects, objectIndexByTrueClass);
+		this.addObjectListToMap(hiddenObjects, objectIndexByTrueClass);
+		
+		Map<String, List<Integer>> immutableListObjectsMap = new HashMap<String, List<Integer>>();
+		for (Map.Entry<String, List<Integer>> entry : objectIndexByTrueClass.entrySet()) {
+			immutableListObjectsMap.put(entry.getKey(), Collections.unmodifiableList(entry.getValue()));
+		}
+		return immutableListObjectsMap;
+	}
+
+
+	private void addObjectListToMap(List<ObjectInstance> objects,
+			Map<String, List<Integer>> objectIndexByTrueClass) {
+		int startIndex = objectIndexByTrueClass.size();
+		for (int i = 0; i < objects.size(); i++) {
+			ObjectInstance object = objects.get(i);
+			String objectClassName = object.getTrueClassName();
+			List<Integer> objectsOfClass = 
+					objectIndexByTrueClass.get(objectClassName);
+			if (objectsOfClass == null) {
+				objectsOfClass = new ArrayList<Integer>();
+				objectIndexByTrueClass.put(objectClassName, objectsOfClass);
+			}
+			objectsOfClass.add(startIndex + i);
+		}
+	}
+	
+
+	private Map<String, Integer> buildObjectMap(List<ObjectInstance> objects, List<ObjectInstance> hiddenObjects) {
+		Map<String, Integer> objectMap = new HashMap<String, Integer>();
+		int startIndex = 0;
+		for (int i = 0; i < objects.size(); i++) {
+			objectMap.put(objects.get(i).getName(), startIndex + i);
+		}
+		startIndex = objects.size();
+		for (int i = 0; i < hiddenObjects.size(); i++) {
+			objectMap.put(hiddenObjects.get(i).getName(), startIndex + i);
+		}
+
+		return objectMap;
 	}
 	
 	
@@ -110,7 +198,15 @@ public class State {
 	 */
 	public State semiDeepCopy(Set<ObjectInstance> deepCopyObjects){
 		
-		State s = new State();
+		State s;
+		try {
+			s = this.getClass().newInstance();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			
+			e.printStackTrace();
+			throw new RuntimeException("Error copying state instance");
+		} 
 		for(ObjectInstance o : this.objectInstances){
 			if(deepCopyObjects.contains(o)){
 				s.addObject(o.copy());
@@ -132,21 +228,37 @@ public class State {
 		return s;
 	}
 	
-	
-	protected void initDataStructures(){
-		
-		objectInstances = new ArrayList <ObjectInstance>();
-		hiddenObjectInstances = new ArrayList <ObjectInstance>();
-		objectMap = new HashMap <String, ObjectInstance>();
-		
-		objectIndexByTrueClass = new HashMap <String, List <ObjectInstance>>();
+	public final State appendObject(ObjectInstance object) {
+		return this.appendAllObjects(Arrays.asList(object));
 	}
 	
+	public final State appendAllObjects(Collection<ObjectInstance> objectsToAdd) {
+		List<ObjectInstance> objects = new ArrayList<ObjectInstance>(this.objectInstances);
+		objects.addAll(objectsToAdd);
+		return new State(objects, this.hiddenObjectInstances);
+	}
+	
+	public final State makeObjectsHidden(Collection<ObjectInstance> objectsToHide) {
+		List<ObjectInstance> objects = new ArrayList<ObjectInstance>(this.objectInstances);
+		objects.removeAll(objectsToHide);
+		List<ObjectInstance> hiddenObjects = new ArrayList<ObjectInstance>(this.hiddenObjectInstances);
+		hiddenObjects.addAll(objectsToHide);
+		return new State(objects, hiddenObjects);
+	}
+	
+	public final State makeObjectsObservable(Collection<ObjectInstance> objectsToObserve) {
+		List<ObjectInstance> hiddenObjects = new ArrayList<ObjectInstance>(this.hiddenObjectInstances);
+		hiddenObjects.removeAll(objectsToObserve);
+		List<ObjectInstance> observableObjects = new ArrayList<ObjectInstance>(this.objectInstances);
+		observableObjects.addAll(objectsToObserve);
+		return new State(observableObjects, hiddenObjects);
+	}
 	
 	/**
 	 * Adds object instance o to this state.
 	 * @param o the object instance to be added to this state.
 	 */
+	@Deprecated
 	public void addObject(ObjectInstance o){
 		
 		String oname = o.getName();
@@ -156,7 +268,7 @@ public class State {
 		}
 		
 		
-		objectMap.put(oname, o);
+		//objectMap.put(oname, o);
 		
 		
 		if(o.getObjectClass().hidden){
@@ -172,31 +284,142 @@ public class State {
 		
 	}
 	
-	private void addObjectClassIndexing(ObjectInstance o){
+	@Deprecated
+	protected void addObjectClassIndexing(ObjectInstance o){
 		
 		String otclass = o.getTrueClassName();
 		
 		//manage true indexing
 		if(objectIndexByTrueClass.containsKey(otclass)){
-			objectIndexByTrueClass.get(otclass).add(o);
+			//objectIndexByTrueClass.get(otclass).add(o);
 		}
 		else{
 			
 			ArrayList <ObjectInstance> classList = new ArrayList <ObjectInstance>();
 			classList.add(o);
-			objectIndexByTrueClass.put(otclass, classList);
+			//objectIndexByTrueClass.put(otclass, classList);
 			
 		}
 		
 	}
 	
+	private boolean removeObjectFromList(List<ObjectInstance> list, String oname) {
+		Iterator<ObjectInstance> it = list.iterator();
+		ObjectInstance obj;
+		while (it.hasNext()) {
+			obj  = it.next();
+			if (obj.getName().equals(oname)) {
+				it.remove();
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	public final State remove(String objectName) {
+		Integer index = this.objectMap.get(objectName);
+		if (index == null) {
+			return this;
+		}
+		
+		List<ObjectInstance> objects = this.objectInstances;
+		List<ObjectInstance> hiddenObjects = this.hiddenObjectInstances;
+		
+		if (index < objects.size()) {
+			objects = new ArrayList<ObjectInstance>(objects);
+			objects.remove(index);
+		}
+		else
+		{
+			hiddenObjects = new ArrayList<ObjectInstance>(hiddenObjects);
+			hiddenObjects.remove(index - objects.size());
+		}
+
+		return new State(objects, hiddenObjects);
+	}
+	
+	public final State remove(ObjectInstance object) {
+		return this.remove(object.getName());
+	}
+	
+	public final State removeAll(Collection<ObjectInstance> objectsToRemove) {
+		List<Integer> indices = new ArrayList<Integer>();
+		for (ObjectInstance object : objectsToRemove) {
+			Integer index = this.objectMap.get(object.getName());
+			if (index != null)
+			indices.add(index);
+		}
+		
+		List<ObjectInstance> objects = new ArrayList<ObjectInstance>(this.objectInstances);
+		List<ObjectInstance> hiddenObjects = new ArrayList<ObjectInstance>(this.hiddenObjectInstances);
+		
+		Collections.sort(indices, Collections.reverseOrder());
+		for (Integer i : indices) {
+			if (i < objects.size()) {
+				objects.remove(i);
+			}
+			else {
+				objects.remove(i - objects.size());
+			}
+		}
+		
+		return new State(objects, hiddenObjects);	
+	}
+	
+	public final State replaceObject(ObjectInstance objectToReplace, ObjectInstance newObject) {
+		
+		Integer index = this.objectMap.get(objectToReplace.getName());
+		
+		List<ObjectInstance> objects = this.objectInstances;
+		List<ObjectInstance> hiddenObjects = this.hiddenObjectInstances;
+		
+		if (index < objects.size()) {
+			objects = new ArrayList<ObjectInstance>(objects);
+			objects.remove(index);
+		} else {
+			hiddenObjects = new ArrayList<ObjectInstance>(objects);
+			hiddenObjects.remove(index - objects.size());
+		}
+		
+		if (objects.remove(objectToReplace)) {
+			objects.add(newObject);
+		} else if (hiddenObjects.remove(objectToReplace)) {
+			hiddenObjects.add(newObject);
+		}
+		return new State(objects, hiddenObjects);
+	}
+	
+	public final State replaceAllObjects(List<ObjectInstance> objectsToRemove, List<ObjectInstance> objectsToAdd) {
+		List<ObjectInstance> objects = new ArrayList<ObjectInstance>(this.objectInstances);
+		List<ObjectInstance> hiddenObjects = new ArrayList<ObjectInstance>(this.hiddenObjectInstances);
+		
+		if (objectsToRemove.size() != objectsToAdd.size()) {
+			throw new RuntimeException("This method requires the two collections to agree in size");
+		}
+		
+		for (int i = 0; i < objectsToRemove.size(); i++) {
+			ObjectInstance objectToRemove = objectsToRemove.get(i);
+			ObjectInstance objectToAdd = objectsToAdd.get(i);
+			
+			Integer index = this.objectMap.get(objectToRemove.getName());
+			if (index < objects.size()) {
+				objects.set(index, objectToAdd);
+			}
+			else {
+				hiddenObjects.set(index - objects.size(), objectToAdd);
+			}
+		}
+
+		return new State(objects, hiddenObjects);
+	}
 	
 	/**
 	 * Removes the object instance with the name oname from this state.
 	 * @param oname the name of the object instance to remove.
 	 */
+	@Deprecated
 	public void removeObject(String oname){
-		this.removeObject(objectMap.get(oname));
+		//this.removeObject(objectMap.get(oname));
 	}
 	
 	
@@ -204,6 +427,7 @@ public class State {
 	 * Removes the object instance o from this state.
 	 * @param o the object instance to remove from this state.
 	 */
+	@Deprecated
 	public void removeObject(ObjectInstance o){
 		if(o == null){
 			return ;
@@ -226,24 +450,25 @@ public class State {
 		
 		this.removeObjectClassIndexing(o);
 		
+		
 	}
 	
 	
-	
-	private void removeObjectClassIndexing(ObjectInstance o){
+	@Deprecated
+	protected void removeObjectClassIndexing(ObjectInstance o){
 		
 		
 		String otclass = o.getTrueClassName();
-		List <ObjectInstance> classTList = objectIndexByTrueClass.get(otclass);
+		//List <ObjectInstance> classTList = objectIndexByTrueClass.get(otclass);
 		
 		//if this index has more than one entry, then we can just remove from it and be done
-		if(classTList.size() > 1){
-			classTList.remove(o);
-		}
-		else{
+		//if(classTList.size() > 1){
+		//	classTList.remove(o);
+		//}
+		//else{
 			//otherwise we have to remove class entries for it
-			objectIndexByTrueClass.remove(otclass);
-		}
+		//	objectIndexByTrueClass.remove(otclass);
+		//}
 		
 		
 		
@@ -255,11 +480,12 @@ public class State {
 	 * @param originalName the original name of the object instance to be renamed in this state
 	 * @param newName the new name of the object instance
 	 */
+	@Deprecated
 	public void renameObject(String originalName, String newName){
-		ObjectInstance o = objectMap.get(originalName);
-		o.setName(newName);
-		objectMap.remove(originalName);
-		objectMap.put(newName, o);
+		//ObjectInstance o = objectMap.get(originalName);
+		//o.setName(newName);
+		//objectMap.remove(originalName);
+		//objectMap.put(newName, o);
 	}
 	
 	
@@ -268,11 +494,12 @@ public class State {
 	 * @param o the object instance to rename in this state
 	 * @param newName the new name of the object instance
 	 */
+	@Deprecated
 	public void renameObject(ObjectInstance o, String newName){
 		String originalName = o.getName();
 		o.setName(newName);
 		objectMap.remove(originalName);
-		objectMap.put(newName, o);
+		//objectMap.put(newName, o);
 	}
 	
 	
@@ -288,24 +515,24 @@ public class State {
 	 * @return a matching from this receiving state's objects to objects in so that have identical values. 
 	 */
 	public Map <String, String> getObjectMatchingTo(State so, boolean enforceStateExactness){
-		
 		Map <String, String> matching = new HashMap<String, String>();
 		
-		if(this.numTotalObjets() != so.numTotalObjets() && enforceStateExactness){
+		if(this.numTotalObjects() != so.numTotalObjects() && enforceStateExactness){
 			return new HashMap<String, String>(); //states are not equal and therefore cannot be matched
 		}
 		
 		Set<String> matchedObs = new HashSet<String>();
 		
-		for(List <ObjectInstance> objects : objectIndexByTrueClass.values()){
-			
-			String oclass = objects.get(0).getTrueClassName();
+		for(Map.Entry<String, List<Integer>> entry : this.objectIndexByTrueClass.entrySet()){
+			String oclass = entry.getKey();
+			List <Integer> objectIndices = entry.getValue();
 			List <ObjectInstance> oobjects = so.getObjectsOfTrueClass(oclass);
-			if(objects.size() != oobjects.size() && enforceStateExactness){
+			if(objectIndices.size() != oobjects.size() && enforceStateExactness){
 				return new HashMap<String, String>(); //states are not equal and therefore cannot be matched
 			}
 			
-			for(ObjectInstance o : objects){
+			for(Integer i : objectIndices){
+				ObjectInstance o = this.getObject(i);
 				boolean foundMatch = false;
 				for(ObjectInstance oo : oobjects){
 					if(matchedObs.contains(oo.getName())){
@@ -344,20 +571,22 @@ public class State {
 		
 		State so = (State)other;
 		
-		if(this.numTotalObjets() != so.numTotalObjets()){
+		if(this.numTotalObjects() != so.numTotalObjects()){
 			return false;
 		}
 		
 		Set<String> matchedObjects = new HashSet<String>();
-		for(List <ObjectInstance> objects : objectIndexByTrueClass.values()){
+		for(Map.Entry<String, List<Integer>> entry : this.objectIndexByTrueClass.entrySet()){
 			
-			String oclass = objects.get(0).getTrueClassName();
+			String oclass = entry.getKey();
+			List <Integer> objectIndices = entry.getValue();
 			List <ObjectInstance> oobjects = so.getObjectsOfTrueClass(oclass);
-			if(objects.size() != oobjects.size()){
+			if(objectIndices.size() != oobjects.size()){
 				return false;
 			}
 			
-			for(ObjectInstance o : objects){
+			for(Integer i : objectIndices){
+				ObjectInstance o = this.getObject(i);
 				boolean foundMatch = false;
 				for(ObjectInstance oo : oobjects){
 					String ooname = oo.getName();
@@ -386,7 +615,7 @@ public class State {
 	 * Returns the number of observable and hidden object instances in this state.
 	 * @return the number of observable and hidden object instances in this state.
 	 */
-	public int numTotalObjets(){
+	public int numTotalObjects(){
 		return objectInstances.size() + hiddenObjectInstances.size();
 	}
 	
@@ -406,6 +635,19 @@ public class State {
 		return hiddenObjectInstances.size();
 	}
 	
+	public ObjectInstance getObject(Integer i) {
+		if (i == null || i < 0 ) {
+			return null;
+		}
+		if (i < this.objectInstances.size()) {
+			return this.objectInstances.get(i);
+		}
+		i -= this.objectInstances.size();
+		if (i < this.hiddenObjectInstances.size()) {
+			return this.hiddenObjectInstances.get(i);
+		}
+		return null;
+	}
 	
 	/**
 	 * Returns the object in this state with the name oname
@@ -413,7 +655,7 @@ public class State {
 	 * @return the object instance with the name oname or null if there is no object in this state named oname
 	 */
 	public ObjectInstance getObject(String oname){
-		return objectMap.get(oname);
+		return this.getObject(this.objectMap.get(oname));
 	}
 	
 	/**
@@ -465,8 +707,9 @@ public class State {
 	 * @return the list of observable and hidden object instances in this state.
 	 */
 	public List <ObjectInstance> getAllObjects(){
-		List <ObjectInstance> objects = new ArrayList <ObjectInstance>(objectInstances);
-		objects.addAll(hiddenObjectInstances);
+		List <ObjectInstance> objects = new ArrayList <ObjectInstance>(objectInstances.size() + hiddenObjectInstances.size());
+		objects.addAll(this.objectInstances);
+		objects.addAll(this.hiddenObjectInstances);
 		return objects;
 	}
 	
@@ -476,11 +719,15 @@ public class State {
 	 * @return all objects that belong to the object class named oclass
 	 */
 	public List <ObjectInstance> getObjectsOfTrueClass(String oclass){
-		List <ObjectInstance> tmp = objectIndexByTrueClass.get(oclass);
+		List <Integer> tmp = objectIndexByTrueClass.get(oclass);
 		if(tmp == null){
 			return new ArrayList <ObjectInstance>();
 		}
-		return new ArrayList <ObjectInstance>(tmp);
+		List<ObjectInstance> objects = new ArrayList<ObjectInstance>(tmp.size());
+		for (Integer i : tmp) {
+			objects.add(this.getObject(i));
+		}
+		return objects;
 	}
 	
 	
@@ -490,9 +737,9 @@ public class State {
 	 * @return the first indexed object of the object class named oclass
 	 */
 	public ObjectInstance getFirstObjectOfClass(String oclass){
-		List <ObjectInstance> obs = this.objectIndexByTrueClass.get(oclass);
+		List <Integer> obs = this.objectIndexByTrueClass.get(oclass);
 		if(obs != null && obs.size() > 0){
-			return obs.get(0);
+			return this.getObject(obs.get(0));
 		}
 		return null;
 	}
@@ -511,7 +758,17 @@ public class State {
 	 * @return a list of list of object instances, grouped by object class
 	 */
 	public List <List <ObjectInstance>> getAllObjectsByTrueClass(){
-		return new ArrayList<List<ObjectInstance>>(objectIndexByTrueClass.values());
+		List<List<ObjectInstance>> allObjects = new ArrayList<List<ObjectInstance>>(this.objectIndexByTrueClass.size());
+		for (Map.Entry<String, List<Integer>> entry : this.objectIndexByTrueClass.entrySet()) {
+			List<Integer> indices = entry.getValue();
+			List<ObjectInstance> objects = new ArrayList<ObjectInstance>(indices.size());
+			for (Integer i : indices) {
+				objects.add(this.getObject(i));
+			}
+			allObjects.add(objects);
+		}
+		
+		return allObjects;
 	}
 	
 	
@@ -521,13 +778,13 @@ public class State {
 	 */
 	public String getStateDescription(){
 		
+		StringBuilder builder = new StringBuilder(200);
 		String desc = "";
 		for(ObjectInstance o : objectInstances){
-			desc = desc + o.getObjectDescription() + "\n";
+			builder = o.buildObjectDescription(builder).append("\n");
 		}
 		
-		return desc;
-	
+		return builder.toString();
 	}
 	
 	
@@ -537,17 +794,22 @@ public class State {
 	 */
 	public String getCompleteStateDescription(){
 		
-		String desc = "";
+		StringBuilder builder = new StringBuilder(200);
 		for(ObjectInstance o : objectInstances){
-			desc = desc + o.getObjectDescription() + "\n";
+			builder = o.buildObjectDescription(builder).append("\n");
 		}
 		for(ObjectInstance o : hiddenObjectInstances){
-			desc = desc + o.getObjectDescription() + "\n";
+			builder = o.buildObjectDescription(builder).append("\n");
 		}
 		
 		
-		return desc;
+		return builder.toString();
 		
+	}
+	
+	@Override
+	public String toString(){
+		return this.getCompleteStateDescription();
 	}
 	
 	
@@ -570,7 +832,7 @@ public class State {
 			return res; //no parameters so just the single ga without params
 		}
 		
-		List <List <String>> bindings = this.getPossibleBindingsGivenParamOrderGroups(a.getParameterClasses(), a.getParameterOrderGroups());
+		/*List <List <String>> bindings = this.getPossibleBindingsGivenParamOrderGroups(a.getParameterClasses(), a.getParameterOrderGroups());
 		
 		for(List <String> params : bindings){
 			String [] aprams = params.toArray(new String[params.size()]);
@@ -578,7 +840,7 @@ public class State {
 				GroundedAction gp = new GroundedAction(a, aprams);
 				res.add(gp);
 			}
-		}
+		}*/
 		
 		return res;
 	}
@@ -617,14 +879,14 @@ public class State {
 			return res; //no parameters so just the single gp without params
 		}
 		
-		List <List <String>> bindings = this.getPossibleBindingsGivenParamOrderGroups(pf.getParameterClasses(), pf.getParameterOrderGroups());
+		/*List <List <String>> bindings = this.getPossibleBindingsGivenParamOrderGroups(pf.getParameterClasses(), pf.getParameterOrderGroups());
 		
 		for(List <String> params : bindings){
 			String [] aprams = params.toArray(new String[params.size()]);
 			GroundedProp gp = new GroundedProp(pf, aprams);
 			res.add(gp);
 		}
-		
+		*/
 		return res;
 	}
 	
@@ -658,49 +920,50 @@ public class State {
 	 */
 	public List <List <String>> getPossibleBindingsGivenParamOrderGroups(String [] paramClasses, String [] paramOrderGroups){
 		
-		List <List <String>> res = new ArrayList <List<String>>();
-		List <List <String>> currentBindingSets = new ArrayList <List<String>>();
+		List <List <Integer>> resIndices = new ArrayList <List<Integer>>();
+		List <List <Integer>> currentBindingSets = new ArrayList <List<Integer>>();
 		List <String> uniqueRenames = this.identifyUniqueClassesInParameters(paramOrderGroups);
 		List <String> uniqueParamClases = this.identifyUniqueClassesInParameters(paramClasses);
 		
-		Map <String, List <ObjectInstance>>	instanceMap = objectIndexByTrueClass;
+		Map <String, List <Integer>>	instanceMap = objectIndexByTrueClass;
+		List<Integer> currentObjects = new ArrayList<Integer>();
 		
 		//first make sure we have objects for each class parameter; if not return empty list
 		for(String oclass : uniqueParamClases){
 			int n = this.getNumOccurencesOfClassInParameters(oclass, paramClasses);
-			List <ObjectInstance> objectsOfClass = instanceMap.get(oclass);
+			List <Integer> objectsOfClass = instanceMap.get(oclass);
 			if(objectsOfClass == null){
-				return res;
+				return new ArrayList <List <String>>();
 			}
 			if(objectsOfClass.size() < n){
-				return res;
+				return new ArrayList <List <String>>();
 			}
+			currentObjects.addAll(objectsOfClass);
 		}
-		
-		this.getPossibleRenameBindingsHelper(res, currentBindingSets, 0, objectInstances, uniqueRenames, paramClasses, paramOrderGroups);
-		
-		
+		this.getPossibleRenameBindingsHelper(resIndices, currentBindingSets, 0, currentObjects, uniqueRenames, paramClasses, paramOrderGroups);
+		return this.getBindingsFromIndices(resIndices);
+	}
+	
+	private List <List <String>> getBindingsFromIndices(List<List<Integer>> allIndices) {
+		List<List<String>> res = new ArrayList<List<String>>(allIndices.size());
+		for (List<Integer> indices : allIndices) {
+			List<String> objects = new ArrayList<String>(indices.size());
+			for (Integer i : indices) {
+				objects.add(this.getObject(i).getName());
+			}
+			res.add(objects);
+		}
 		return res;
-		
 	}
 	
 	
 	
-	
-	@Override
-	public String toString(){
-		return this.getCompleteStateDescription();
-	}
-	
-	
-	
-	
-	private void getPossibleRenameBindingsHelper(List <List <String>> res, List <List <String>> currentBindingSets, int bindIndex,
-			List <ObjectInstance> remainingObjects, List <String> uniqueOrderGroups, String [] paramClasses, String [] paramOrderGroups){
+	private void getPossibleRenameBindingsHelper(List <List <Integer>> res, List <List <Integer>> currentBindingSets, int bindIndex,
+			List <Integer> remainingObjects, List <String> uniqueOrderGroups, String [] paramClasses, String [] paramOrderGroups){
 		
 		if(bindIndex == uniqueOrderGroups.size()){
 			//base case, put it all together and add it to the result
-			res.add(this.getBindngFromCombinationSet(currentBindingSets, uniqueOrderGroups, paramOrderGroups));
+			res.add(this.getBindingFromCombinationSet(currentBindingSets, uniqueOrderGroups, paramOrderGroups));
 			return ;
 		}
 		
@@ -708,36 +971,47 @@ public class State {
 		
 		String r = uniqueOrderGroups.get(bindIndex);
 		String c = this.parameterClassAssociatedWithOrderGroup(r, paramOrderGroups, paramClasses);
-		List <ObjectInstance> cands = this.objectsMatchingClass(remainingObjects, c);
+		List <Integer> cands = this.objectsMatchingClass(remainingObjects, c);
 		int k = this.numOccurencesOfOrderGroup(r, paramOrderGroups);
-		List <List <String>> combs = this.getAllCombinationsOfObjects(cands, k);
-		for(List <String> cb : combs){
-			
-			List <List<String>> nextBinding = new ArrayList<List<String>>(currentBindingSets.size());
-			for(List <String> prevBind : currentBindingSets){
-				nextBinding.add(prevBind);
-			}
-			nextBinding.add(cb);
-			List <ObjectInstance> nextObsReamining = this.objectListDifference(remainingObjects, cb);
-			
-			//recursive step
-			this.getPossibleRenameBindingsHelper(res, nextBinding, bindIndex+1, nextObsReamining, uniqueOrderGroups, paramClasses, paramOrderGroups);
-			
+		
+		int n = cands.size();
+		int [] comb = this.initialComb(k, n);
+		List<Integer> combList = this.getObjectsFromComb(cands, comb);
+		this.addBindingCombination(res, currentBindingSets, bindIndex,
+				remainingObjects, uniqueOrderGroups, paramClasses,
+				paramOrderGroups, combList);
+		
+		
+		while(nextComb(comb, k, n) == 1){
+			combList = this.getObjectsFromComb(cands, comb);
+			this.addBindingCombination(res, currentBindingSets, bindIndex,
+					remainingObjects, uniqueOrderGroups, paramClasses,
+					paramOrderGroups, combList);
 		}
+	}
+
+
+	private void addBindingCombination(List<List<Integer>> res,
+			List<List<Integer>> currentBindingSets, int bindIndex,
+			List<Integer> remainingObjects, List<String> uniqueOrderGroups,
+			String[] paramClasses, String[] paramOrderGroups, List<Integer> cb) {
 		
+		List <List<Integer>> nextBinding = new ArrayList<List<Integer>>(currentBindingSets.size());
+		for(List <Integer> prevBind : currentBindingSets){
+			nextBinding.add(prevBind);
+		}
+		nextBinding.add(cb);
+		List <Integer> nextObsReamining = this.objectListDifference(remainingObjects, cb);
 		
-		
+		//recursive step
+		this.getPossibleRenameBindingsHelper(res, nextBinding, bindIndex+1, nextObsReamining, uniqueOrderGroups, paramClasses, paramOrderGroups);
 	}
 	
 	
-	private List <ObjectInstance> objectListDifference(List <ObjectInstance> objects, List <String> toRemove){
-		List <ObjectInstance> remaining = new ArrayList<ObjectInstance>(objects.size());
-		for(ObjectInstance oi : objects){
-			String oname = oi.getName();
-			if(!toRemove.contains(oname)){
-				remaining.add(oi);
-			}
-		}
+	private List <Integer> objectListDifference(List <Integer> objects, List <Integer> toRemove){
+		
+		List <Integer> remaining = new ArrayList<Integer>(objects);
+		remaining.removeAll(toRemove);
 		return remaining;
 	}
 	
@@ -785,20 +1059,18 @@ public class State {
 	}
 	
 	
-	private List <ObjectInstance> objectsMatchingClass(List <ObjectInstance> sourceObs, String cname){
+	private List <Integer> objectsMatchingClass(Collection <Integer> sourceObs, String cname){
+		List <Integer> res = new ArrayList<Integer>(sourceObs.size());
 		
-		List <ObjectInstance> res = new ArrayList<ObjectInstance>(sourceObs.size());
-		
-		for(ObjectInstance o : sourceObs){
-			
+		for(Integer i : sourceObs){
+			ObjectInstance o = this.getObject(i);
 			if(o.getTrueClassName().equals(cname)){
-				res.add(o);
+				res.add(i);
 			}
 			
 		}
 		
 		return res;
-		
 	}
 	
 	
@@ -810,17 +1082,18 @@ public class State {
 	 * @param orderGroups the parameter order groups for each parameter
 	 * @return a binding as a list of object instance names
 	 */
-	private List <String> getBindngFromCombinationSet(List <List <String>> comboSets, List <String> orderGroupAssociatedWithSet, String [] orderGroups){
+	private List <Integer> getBindingFromCombinationSet(List <List <Integer>> comboSets, List <String> orderGroupAssociatedWithSet, String [] orderGroups){
 		
-		List <String> res = new ArrayList <String>(orderGroups.length);
+		List <Integer> res = new ArrayList <Integer>(orderGroups.length);
 		//add the necessary space first
+		
 		for(int i = 0; i < orderGroups.length; i++){
-			res.add("");
+			res.add(-1);
 		}
 		
 		//apply the parameter bindings for each rename combination
 		for(int i = 0; i < comboSets.size(); i++){
-			List <String> renameCombo = comboSets.get(i);
+			List <Integer> renameCombo = comboSets.get(i);
 			String r = orderGroupAssociatedWithSet.get(i);
 			
 			//find the parameter indices that match this rename and set a binding accordingly
@@ -837,27 +1110,36 @@ public class State {
 	}
 	
 	
-	private List <List <String>> getAllCombinationsOfObjects(List <ObjectInstance> objects, int k){
+	private List <List <Integer>> getAllCombinationsOfObjects(List <Integer> objects, int k){
 		
-		List <List<String>> allCombs = new ArrayList <List<String>>();
+		List <List<Integer>> allCombs = new ArrayList <List<Integer>>();
 		
 		int n = objects.size();
 		int [] comb = this.initialComb(k, n);
-		allCombs.add(this.getListOfBindingsFromCombination(objects, comb));
+		List<Integer> initialComb = this.getObjectsFromComb(objects, comb);
+		allCombs.add(initialComb);
 		while(nextComb(comb, k, n) == 1){
-			allCombs.add(this.getListOfBindingsFromCombination(objects, comb));
+			allCombs.add(this.getObjectsFromComb(objects, comb));
 		}
 		
 		return allCombs;
 		
 	}
 	
+	private List<Integer> getObjectsFromComb(List<Integer> allObjects, int[] comb) {
+		List<Integer> objects = new ArrayList<Integer>(comb.length);
+		for (int i : comb){ 
+			objects.add(allObjects.get(i));
+		}
+		return objects;
+	}
 	
 	
-	private List <String> getListOfBindingsFromCombination(List <ObjectInstance> objects, int [] comb){
-		List <String> res = new ArrayList <String>(comb.length);
+	@Deprecated
+	private List <Integer> getListOfBindingsFromCombination(List <Integer> objects, int [] comb){
+		List <Integer> res = new ArrayList <Integer>(comb.length);
 		for(int i = 0; i < comb.length; i++){
-			res.add(objects.get(comb[i]).getName());
+			//res.add(objects.get(comb[i]).getName());
 		}
 		return res;
 	}

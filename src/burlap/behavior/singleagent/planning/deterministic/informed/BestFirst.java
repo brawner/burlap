@@ -119,7 +119,7 @@ public abstract class BestFirst extends DeterministicPlanner {
 				DPrint.cl(debugCode, "Min F Expanded: " + minF + "; Nodes expanded so far: " + nexpanded + "; Open size: " + openQueue.size());
 			}
 			
-			State s = node.s.s;
+			State s = node.s.getState();
 			if(gc.satisfies(s)){
 				lastVistedNode = node;
 				break;

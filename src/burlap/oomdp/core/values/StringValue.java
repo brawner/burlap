@@ -17,7 +17,7 @@ public class StringValue extends Value {
 	/**
 	 * The string value
 	 */
-	protected String			stringVal = "";
+	private final String			stringVal;
 	
 	
 	/**
@@ -26,6 +26,7 @@ public class StringValue extends Value {
 	 */
 	public StringValue(Attribute attribute) {
 		super(attribute);
+		this.stringVal = "";
 	}
 	
 	
@@ -37,6 +38,11 @@ public class StringValue extends Value {
 		super(v);
 		this.stringVal = ((StringValue)v).stringVal;
 	}
+	
+	public StringValue(Attribute attribute, String v) {
+		super(attribute);
+		this.stringVal = v;
+	}
 
 	@Override
 	public Value copy() {
@@ -44,18 +50,36 @@ public class StringValue extends Value {
 	}
 
 	@Override
-	public void setValue(int v) {
-		this.stringVal = Integer.toString(v);
+	public Value changeValue(int v) {
+		return new StringValue(this.attribute, Integer.toString(v));
 	}
 	
+	@Override
+	public Value changeValue(double v) {
+		return new StringValue(this.attribute, Double.toString(v));
+	}
+	
+	@Override
+	public Value changeValue(String v) {
+		return new StringValue(this.attribute, v);
+	}
+	
+	@Deprecated
+	@Override
+	public void setValue(int v) {
+		//this.stringVal = Integer.toString(v);
+	}
+	
+	@Deprecated
 	@Override
 	public void setValue(double v) {
-		this.stringVal = Double.toString(v);
+		//this.stringVal = Double.toString(v);
 	}
 	
+	@Deprecated
 	@Override
 	public void setValue(String v) {
-		this.stringVal = v;
+		//this.stringVal = v;
 	}
 	
 	@Override
@@ -97,6 +121,11 @@ public class StringValue extends Value {
 	public String getStringVal() {
 		return this.stringVal;
 	}
+	
+	@Override
+	public StringBuilder buildStringVal(StringBuilder builder) {
+		return builder.append(this.stringVal);
+	}
 
 	@Override
 	public Set<String> getAllRelationalTargets() {
@@ -111,6 +140,10 @@ public class StringValue extends Value {
 	
 	@Override
 	public boolean equals(Object obj){
+		if (this == obj) {
+			return true;
+		}
+		
 		if(!(obj instanceof StringValue)){
 			return false;
 		}

@@ -143,7 +143,7 @@ public class TabularModel extends Model {
 		}
 		else{
 			for(OutcomeState os : san.outcomes.values()){
-				State sp = os.osh.s;
+				State sp = os.osh.getState();
 				double p = (double)os.nTimes / (double)san.nTries;
 				TransitionProbability tp = new TransitionProbability(sp, p);
 				transitions.add(tp);
@@ -181,7 +181,7 @@ public class TabularModel extends Model {
 		if(sn == null){
 			return null;
 		}
-		return sn.actionNode((GroundedAction)ga.translateParameters(sh.s, sn.sh.s));
+		return sn.actionNode((GroundedAction)ga.translateParameters(sh.getState(), sn.sh.getState()));
 	}
 	
 	/**
@@ -200,7 +200,7 @@ public class TabularModel extends Model {
 			this.stateNodes.put(sh, sn);
 			
 			//List <GroundedAction> allActions = sh.s.getAllGroundedActionsFor(this.sourceDomain.getActions());
-			List<GroundedAction> allActions = Action.getAllApplicableGroundedActionsFromActionList(this.sourceDomain.getActions(), sh.s);
+			List<GroundedAction> allActions = Action.getAllApplicableGroundedActionsFromActionList(this.sourceDomain.getActions(), sh.getState());
 			for(GroundedAction tga : allActions){
 				StateActionNode san = sn.addActionNode(tga);
 				if(tga.equals(ga)){
@@ -210,7 +210,7 @@ public class TabularModel extends Model {
 			
 		}
 		else{
-			toReturn = sn.actionNode((GroundedAction)ga.translateParameters(sh.s, sn.sh.s));
+			toReturn = sn.actionNode((GroundedAction)ga.translateParameters(sh.getState(), sn.sh.getState()));
 		}
 		
 		if(toReturn == null){

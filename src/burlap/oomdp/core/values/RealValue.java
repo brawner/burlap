@@ -17,7 +17,7 @@ public class RealValue extends Value {
 	/**
 	 * The real value stored as a double. Default value of NaN indicates that the value is unset
 	 */
-	protected double		realVal = Double.NaN;
+	private final double		realVal;
 
 	
 	/**
@@ -26,6 +26,7 @@ public class RealValue extends Value {
 	 */
 	public RealValue(Attribute attribute){
 		super(attribute);
+		this.realVal = Double.NaN;
 	}
 	
 	
@@ -39,24 +40,50 @@ public class RealValue extends Value {
 		this.realVal = rv.realVal;
 	}
 	
+	public RealValue(Attribute attribute, double realVal) {
+		super(attribute);
+		this.realVal = realVal;
+	}
+	
 	@Override
 	public Value copy(){
 		return new RealValue(this);
 	}
 	
 	@Override
+	public Value changeValue(int v) {
+		return new RealValue(this.attribute, (double)v);
+	}
+	
+	@Override
+	public Value changeValue(double v) {
+		return new RealValue(this.attribute, v);
+	}
+	
+	@Override
+	public Value changeValue(String v) {
+		return new RealValue(this.attribute, Double.parseDouble(v));
+	}
+	
+	@Override
+	@Deprecated
 	public void setValue(int v){
-		this.realVal = (double)v;
+		throw new UnsupportedOperationException("Value is real; cannot be set to a boolean value.");
+		//this.realVal = (double)v;
 	}
 	
 	@Override
+	@Deprecated
 	public void setValue(double v){
-		this.realVal = v;
+		throw new UnsupportedOperationException("Value is real; cannot be set to a boolean value.");
+		//this.realVal = v;
 	}
 	
 	@Override
+	@Deprecated
 	public void setValue(String v){
-		this.realVal = Double.parseDouble(v);
+		throw new UnsupportedOperationException("Value is real; cannot be set to a boolean value.");
+		//this.realVal = Double.parseDouble(v);
 	}
 	
 	@Override
@@ -106,6 +133,14 @@ public class RealValue extends Value {
 	}
 	
 	@Override
+	public StringBuilder buildStringVal(StringBuilder builder) {
+		if(Double.isNaN(this.realVal)){
+			throw new UnsetValueException();
+		}
+		return builder.append(this.realVal);
+	}
+	
+	@Override
 	public Set<String> getAllRelationalTargets() {
 		throw new UnsupportedOperationException(new Error("Value is real, cannot return relational values"));
 	}
@@ -120,6 +155,9 @@ public class RealValue extends Value {
 	
 	@Override
 	public boolean equals(Object obj){
+		if (this == obj) {
+			return true;
+		}
 		
 		if(!(obj instanceof RealValue)){
 			return false;

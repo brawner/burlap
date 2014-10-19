@@ -7,7 +7,6 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import burlap.behavior.singleagent.EpisodeAnalysis;
-import burlap.behavior.singleagent.EpisodeSequenceVisualizer;
 import burlap.behavior.singleagent.Policy;
 import burlap.behavior.singleagent.planning.SinglePFSCT;
 import burlap.behavior.singleagent.planning.StateConditionTest;
@@ -16,7 +15,6 @@ import burlap.behavior.singleagent.planning.deterministic.informed.Heuristic;
 import burlap.behavior.singleagent.planning.deterministic.informed.NullHeuristic;
 import burlap.behavior.singleagent.planning.deterministic.informed.astar.AStar;
 import burlap.behavior.statehashing.DiscreteStateHashFactory;
-import burlap.debugtools.MyTimer;
 import burlap.oomdp.auxiliary.StateParser;
 import burlap.oomdp.auxiliary.common.StateJSONParser;
 import burlap.oomdp.core.Domain;
@@ -25,7 +23,6 @@ import burlap.oomdp.core.TerminalFunction;
 import burlap.oomdp.singleagent.RewardFunction;
 import burlap.oomdp.singleagent.common.SinglePFTF;
 import burlap.oomdp.singleagent.common.UniformCostRF;
-import burlap.oomdp.visualizer.Visualizer;
 import burlap.testing.Domain.BlockDude;
 
 public class TestBlockDude {
@@ -80,15 +77,15 @@ public class TestBlockDude {
 			ph.add(15);
 			
 			State s = BlockDude.getCleanState(d, px, ph, 6);
-			BlockDude.setAgent(s, 9, 3, 1, 0);
-			BlockDude.setExit(s, 1, 0);
+			s = BlockDude.setAgent(s, 9, 3, 1, 0);
+			s = BlockDude.setExit(s, 1, 0);
 			
-			BlockDude.setBlock(s, 0, 5, 1);
-			BlockDude.setBlock(s, 1, 6, 1);
-			BlockDude.setBlock(s, 2, 14, 3);
-			BlockDude.setBlock(s, 3, 16, 4);
-			BlockDude.setBlock(s, 4, 17, 4);
-			BlockDude.setBlock(s, 5, 17, 5);
+			s = BlockDude.setBlock(s, 0, 5, 1);
+			s = BlockDude.setBlock(s, 1, 6, 1);
+			s = BlockDude.setBlock(s, 2, 14, 3);
+			s = BlockDude.setBlock(s, 3, 16, 4);
+			s = BlockDude.setBlock(s, 4, 17, 4);
+			s = BlockDude.setBlock(s, 5, 17, 5);
 			
 			TerminalFunction tf = new SinglePFTF(d.getPropFunction(BlockDude.PFATEXIT));
 			StateConditionTest sc = new SinglePFSCT(d.getPropFunction(BlockDude.PFATEXIT));

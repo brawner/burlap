@@ -607,7 +607,7 @@ public abstract class Option extends Action {
 		
 		List <TransitionProbability> transition = new ArrayList<TransitionProbability>();
 		for(Map.Entry<StateHashTuple, Double> e : possibleTerminations.entrySet()){
-			TransitionProbability tp = new TransitionProbability(e.getKey().s, e.getValue());
+			TransitionProbability tp = new TransitionProbability(e.getKey().getState(), e.getValue());
 			transition.add(tp);
 		}
 		
