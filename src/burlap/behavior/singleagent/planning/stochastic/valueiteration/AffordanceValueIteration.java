@@ -1,7 +1,6 @@
 package burlap.behavior.singleagent.planning.stochastic.valueiteration;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -10,7 +9,6 @@ import java.util.Set;
 import burlap.behavior.affordances.AffordancesController;
 import burlap.behavior.singleagent.planning.ActionTransitions;
 import burlap.behavior.singleagent.planning.HashedTransitionProbability;
-import burlap.behavior.singleagent.planning.ValueFunctionPlanner;
 import burlap.behavior.statehashing.StateHashFactory;
 import burlap.behavior.statehashing.StateHashTuple;
 import burlap.debugtools.DPrint;
@@ -18,7 +16,6 @@ import burlap.oomdp.core.AbstractGroundedAction;
 import burlap.oomdp.core.Domain;
 import burlap.oomdp.core.State;
 import burlap.oomdp.core.TerminalFunction;
-import burlap.oomdp.singleagent.Action;
 import burlap.oomdp.singleagent.GroundedAction;
 import burlap.oomdp.singleagent.RewardFunction;
 
@@ -57,6 +54,7 @@ public class AffordanceValueIteration extends ValueIteration{
 		this.affController = affController;
 	}
 	
+	@Override
 	public int planFromStateAndCount(State initialState){
 		this.initializeOptionsForExpectationComputations();
 		if(this.performReachabilityFrom(initialState)){

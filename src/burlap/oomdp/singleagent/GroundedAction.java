@@ -1,7 +1,6 @@
 package burlap.oomdp.singleagent;
 
 import burlap.oomdp.core.AbstractGroundedAction;
-import burlap.oomdp.core.ObjectInstance;
 import burlap.oomdp.core.State;
 
 /**

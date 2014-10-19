@@ -2,19 +2,14 @@ package burlap.behavior.affordances;
 
 import java.security.SecureRandom;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
 import burlap.oomdp.core.AbstractGroundedAction;
-import burlap.oomdp.core.ObjectInstance;
 import burlap.oomdp.core.State;
 import burlap.oomdp.logicalexpressions.LogicalExpression;
-import burlap.oomdp.singleagent.Action;
-import cc.mallet.types.Dirichlet;
-import cc.mallet.types.Multinomial;
 
 public class AffordancesController {
 

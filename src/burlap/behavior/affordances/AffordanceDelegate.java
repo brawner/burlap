@@ -1,12 +1,10 @@
 package burlap.behavior.affordances;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import burlap.behavior.singleagent.planning.OOMDPPlanner;
 import burlap.oomdp.core.AbstractGroundedAction;
 import burlap.oomdp.core.Domain;
 import burlap.oomdp.core.GroundedProp;
