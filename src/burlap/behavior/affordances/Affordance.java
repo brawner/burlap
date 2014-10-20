@@ -52,10 +52,13 @@ public class Affordance {
 	 * @return
 	 */
 	public double probActionIsRelevant(AbstractGroundedAction action) {
-		double optimalActAffActive = (double) this.actionOptimalAffActiveCounts.get(action);
-		double totalActOptimal = (double) this.totalActionOptimalCounts.get(action);
-
-		return optimalActAffActive / totalActOptimal;
+		Integer optimalActAffActive = this.actionOptimalAffActiveCounts.get(action);
+		Integer totalActOptimal = this.totalActionOptimalCounts.get(action);
+		if (optimalActAffActive == null || totalActOptimal == null) {
+			return 0.0;
+		}
+		
+		return (totalActOptimal == 0) ? 0.0 : (double)optimalActAffActive / totalActOptimal;
 	}
 	
 	// --- Accessors ---

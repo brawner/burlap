@@ -191,14 +191,22 @@ public class AffordancesController {
 			for(AbstractGroundedAction aga : affDel.getActionCounts().keySet()) {
 				countsOfAff += affDel.getActionCounts().get(aga);
 			}
-			double countsAffActionNotOptimal = countsOfAff - affDel.getActionCounts().get(action);
+			double countsAffActionNotOptimal = countsOfAff;
+			if (affDel.getActionCounts().containsKey(action)) { 
+				countsAffActionNotOptimal -= countsOfAff - affDel.getActionCounts().get(action);
+			}
+			
 			
 			// Count number of times the action was NOT optimal
 			double totalStatesVisited = 0; 
 			for(AbstractGroundedAction aga : affDel.getTotalActionCounts().keySet()) {
 				totalStatesVisited += affDel.getTotalActionCounts().get(aga);
 			}
-			double countsActionNotOptimal = totalStatesVisited - affDel.getTotalActionCounts().get(action);
+			
+			double countsActionNotOptimal = totalStatesVisited;
+			if (affDel.getTotalActionCounts().containsKey(action)) {
+				countsActionNotOptimal -= affDel.getTotalActionCounts().get(action);
+			}
 			
 			if(affDel.isActive(s)) {
 				negativeHypothesis *= countsAffActionNotOptimal / countsActionNotOptimal;
@@ -224,6 +232,10 @@ public class AffordancesController {
 			totalStatesVisited += totalActionCounts.get(aga);
 		}
 
-		return totalActionCounts.get(action_i) / totalStatesVisited;
+		Integer totalActionCount = totalActionCounts.get(action_i);
+		if (totalActionCount == null) {
+			return 0.0;
+		}
+		return (totalStatesVisited == 0) ? 0.0 : (double) totalActionCount / totalStatesVisited;
 	}
 }
