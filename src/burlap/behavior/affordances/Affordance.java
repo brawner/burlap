@@ -4,11 +4,16 @@
 package burlap.behavior.affordances;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import burlap.oomdp.core.AbstractGroundedAction;
+import burlap.oomdp.core.State;
 import burlap.oomdp.logicalexpressions.LogicalExpression;
+import burlap.oomdp.singleagent.Action;
+import burlap.oomdp.singleagent.GroundedAction;
 
 /**
  * @author dabel
@@ -18,6 +23,7 @@ public class Affordance {
 
 	private Map<AbstractGroundedAction, Integer> 	actionOptimalAffActiveCounts;
 	private Map<AbstractGroundedAction,Integer>		totalActionOptimalCounts;
+	private Action predicateAction;
 	public LogicalExpression preCondition;
 	public LogicalExpression goalDescription;
 	
@@ -32,6 +38,13 @@ public class Affordance {
 			this.goalDescription = goalDescr;
 			
 			initCounts(actions);
+	}
+	
+	public Affordance(LogicalExpression preCond, LogicalExpression goalDescr, Action action) {
+		this.preCondition = preCond;
+		this.goalDescription = goalDescr;
+		this.predicateAction = action;
+		
 	}
 		
 	/**
@@ -69,6 +82,18 @@ public class Affordance {
 	
 	public Map<AbstractGroundedAction, Integer> getTotalActionOptimalCounts() {
 		return totalActionOptimalCounts;
+	}
+	
+	public List<GroundedAction> getActionsForState(State state) {
+		return this.predicateAction.getAllApplicableGroundedActions(state);
+	}
+	
+	public Action getPredicateAction() {
+		return this.predicateAction;
+	}
+	
+	public Set<AbstractGroundedAction> getActions() {
+		return this.actionOptimalAffActiveCounts.keySet();
 	}
 
 	// --- Mutators ---

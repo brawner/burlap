@@ -260,7 +260,10 @@ public class RTDP extends ValueFunctionPlanner {
 			
 			totalStates += nSteps;
 			
-//			DPrint.cl(debugCode, "Pass: " + i + "; Num states: " + nSteps + " (total: " + totalStates + ")");
+			DPrint.cl(debugCode, "Pass: " + i + "; Num states: " + nSteps + " (total: " + totalStates + ")");
+			if (i > 100) {
+				System.exit(0);
+			}
 //			System.out.print("Action sequence: ");
 //			for(GroundedAction ga : rolloutActions) {
 //				System.out.print(ga + ",");

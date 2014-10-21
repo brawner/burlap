@@ -4,7 +4,9 @@
 package burlap.behavior.singleagent.planning.commonpolicies;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import burlap.behavior.affordances.AffordancesController;
 import burlap.behavior.singleagent.QValue;
@@ -33,16 +35,21 @@ public class AffordanceGreedyQPolicy extends GreedyQPolicy {
 		this.affController = affController;
 	}
 	
+	
+	
 	/**
 	 * Returns an action from the affordance-filtered action set.
 	 */
 	@Override
 	public AbstractGroundedAction getAction(State s) {
-		List<QValue> allQValues = ((ValueFunctionPlanner) this.qplanner).getQs(s);
+		List<QValue> filteredQValues = this.qplanner.getQs(s);
 		
-		List<QValue> filteredQValues = filterQValues(allQValues, s);
+		//List<QValue> filteredQValues = filterQValues(allQValues, s);
 
 		List <QValue> maxActions = new ArrayList<QValue>();
+		if (filteredQValues.size() == 0) {
+			int c = 1;
+		}
 		maxActions.add(filteredQValues.get(0));
 		double maxQ = filteredQValues.get(0).q;
 		for(int i = 1; i < filteredQValues.size(); i++){
@@ -68,13 +75,8 @@ public class AffordanceGreedyQPolicy extends GreedyQPolicy {
 	 */
 	private List<QValue> filterQValues(List<QValue> allQValues, State s) {
 		
-		List<QValue> affFilteredQValues = new ArrayList<QValue>();
-		List<AbstractGroundedAction> qActions = new ArrayList<AbstractGroundedAction>();
-		for(QValue q : allQValues){
-			qActions.add(q.a);
-		}
-		
-		qActions = this.affController.getPrunedActionsForState(s);
+		List<QValue> affFilteredQValues = new ArrayList<QValue>(allQValues.size());
+		Set<AbstractGroundedAction> qActions = new HashSet<AbstractGroundedAction>(this.affController.getPrunedActionsForState(s));
 		
 		for(QValue q : allQValues){
 			if(qActions.contains(q.a)){

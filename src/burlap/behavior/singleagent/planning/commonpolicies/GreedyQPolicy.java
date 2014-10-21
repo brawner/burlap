@@ -77,7 +77,13 @@ public class GreedyQPolicy extends Policy implements PlannerDerivedPolicy{
 
 	@Override
 	public List<ActionProb> getActionDistributionForState(State s) {
+		List <ActionProb> res = new ArrayList<Policy.ActionProb>();
+		
 		List<QValue> qValues = this.qplanner.getQs(s);
+		if (qValues.size() == 0) {
+			return res;
+		}
+		
 		int numMax = 1;
 		double maxQ = qValues.get(0).q;
 		for(int i = 1; i < qValues.size(); i++){
@@ -91,7 +97,6 @@ public class GreedyQPolicy extends Policy implements PlannerDerivedPolicy{
 			}
 		}
 		
-		List <ActionProb> res = new ArrayList<Policy.ActionProb>();
 		double uniformMax = 1./(double)numMax;
 		for(int i = 0; i < qValues.size(); i++){
 			QValue q = qValues.get(i);

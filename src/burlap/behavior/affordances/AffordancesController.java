@@ -3,18 +3,25 @@ package burlap.behavior.affordances;
 import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.Set;
 
 import burlap.oomdp.core.AbstractGroundedAction;
+import burlap.oomdp.core.PropositionalFunction;
 import burlap.oomdp.core.State;
 import burlap.oomdp.logicalexpressions.LogicalExpression;
+import burlap.oomdp.singleagent.Action;
+import burlap.oomdp.singleagent.GroundedAction;
 
 public class AffordancesController {
 
 	private List<AffordanceDelegate> affordances = new ArrayList<AffordanceDelegate>();
 	public List<AbstractGroundedAction> allActions = new ArrayList<AbstractGroundedAction>();
+	public List<PropositionalFunction> affordancePFs = new ArrayList<PropositionalFunction>();
+	
 	public LogicalExpression currentGoal; 
 	private boolean threshold = false; // True when we threshold probabilities to determine actions
 	private boolean expertFlag = false;
@@ -56,6 +63,17 @@ public class AffordancesController {
 		}
 	}
 	
+	private void setupAffordanceDelegates(List<AffordanceDelegate> affs) {
+		Set<AbstractGroundedAction> actionSet = new HashSet<AbstractGroundedAction>();
+		Set<AffordanceDelegate> uniqueAffordances = new HashSet<AffordanceDelegate>(affs);
+		for (AffordanceDelegate affordance : uniqueAffordances) {
+			Set<AbstractGroundedAction> aSet = affordance.getAffordance().getActionOptimalAffActiveCounts().keySet();
+			actionSet.addAll(aSet);
+		}
+		this.allActions = new ArrayList<AbstractGroundedAction>(actionSet);
+		this.affordances = new ArrayList<AffordanceDelegate>(uniqueAffordances);
+	}
+	
 	/**
 	 * Add the affordance delegate to the controller. If it has any actions we don't have yet, add them.
 	 * @param aff
@@ -77,6 +95,54 @@ public class AffordancesController {
 	}
 	
 	// --- NEW STUFF ---
+	
+	public void setExpertPFs(List<PropositionalFunction> propositionalFunctions) {
+		this.affordancePFs = new ArrayList<PropositionalFunction>(propositionalFunctions);
+	}
+	
+	public boolean isPFApplicable(PropositionalFunction pf, Action action) {
+		String[] pfClasses = pf.getParameterClasses();
+		String[] actionClasses = action.getParameterClasses();
+		if (pfClasses.length != actionClasses.length) {
+			return false;
+		}
+		
+		for (int i = 0; i < actionClasses.length; i++) {
+			if (!pfClasses[i].equals(actionClasses[i])) {
+				return false;
+			}
+		}
+		return true;
+	}
+	
+	public List<AbstractGroundedAction> getPrunedActionsForState(List<Action> actions, State state) {
+		
+		List<AbstractGroundedAction> result = new ArrayList<AbstractGroundedAction>();
+		Set<String> actionsUsed = new HashSet<String>();
+		
+		if(expertFlag) {
+			List<GroundedAction> allActions = new ArrayList<GroundedAction>();
+			for (Action action : actions) {
+				List<GroundedAction> groundedActions = action.getAllApplicableGroundedActions(state);
+				allActions.addAll(groundedActions);
+				if (groundedActions.size() > 0) {
+					actionsUsed.add(action.getName());
+				}
+			}
+			for (GroundedAction groundedAction : allActions) {
+				for (PropositionalFunction pf : this.affordancePFs) {
+					if (pf.getName().equals("pourPF") && groundedAction.actionName().equals("pour")) {
+						int c = 1;
+					}
+					if (this.isPFApplicable(pf, groundedAction.action) && pf.isTrue(state, groundedAction.params)) {
+						result.add(groundedAction);
+						break;
+					}
+				}
+			}
+		}	
+		return result;
+	}
 	
 	/**
 	 * Prunes actions according the affordances in the controller, and returns
@@ -100,11 +166,22 @@ public class AffordancesController {
 		}
 		else if(expertFlag) {
 			// Expert action pruning (union of all active affordances are good actions)
-			for(AbstractGroundedAction aga : posterior.keySet()) {
+			for (AffordanceDelegate delegate : this.affordances) {
+				if (delegate.isActive(s)) {
+					Affordance affordance = delegate.getAffordance();
+					for (AbstractGroundedAction action : affordance.getActions()) {
+						GroundedAction groundedAction = (GroundedAction)action;
+						if (groundedAction.action.applicableInState(s, groundedAction.params)){
+							result.add(action);
+						}
+					}
+				}
+			}
+			/*for(AbstractGroundedAction aga : posterior.keySet()) {
 				if (posterior.get(aga) > 0.0) {
 					result.add(aga);
 				}
-			}
+			}*/
 		}
 		// Otherwise, we sample from the posterior
 		else {

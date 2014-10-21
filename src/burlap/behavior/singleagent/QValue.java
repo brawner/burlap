@@ -51,4 +51,9 @@ public class QValue {
 		this.q = src.q;
 	}
 	
+	@Override
+	public String toString() {
+		return this.a.toString() + ": " + this.q;
+	}
+	
 }

@@ -2,6 +2,7 @@ package burlap.behavior.singleagent.planning;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -66,7 +67,6 @@ public abstract class ValueFunctionPlanner extends OOMDPPlanner implements QComp
 	 */
 	protected ValueFunctionInitialization							valueInitializer = new ValueFunctionInitialization.ConstantValueFunctionInitialization();
 
-	
 	@Override
 	public abstract void planFromState(State initialState);
 	
@@ -83,8 +83,7 @@ public abstract class ValueFunctionPlanner extends OOMDPPlanner implements QComp
 		this.plannerInit(domain, rf, tf, gamma, hashingFactory);
 		
 		this.transitionDynamics = new HashMap<StateHashTuple, List<ActionTransitions>>();
-		this.valueFunction = new HashMap<StateHashTuple, Double>();		
-		
+		this.valueFunction = new HashMap<StateHashTuple, Double>();	
 	}
 	
 	
@@ -189,6 +188,7 @@ public abstract class ValueFunctionPlanner extends OOMDPPlanner implements QComp
 		return res;
 	}
 	
+	
 	public List<QValue> getAffordanceQs(State s, AffordancesController affController) {
 		StateHashTuple sh = this.stateHash(s);
 		Map<String,String> matching = null;
@@ -205,19 +205,14 @@ public abstract class ValueFunctionPlanner extends OOMDPPlanner implements QComp
 		}
 		
 		List <QValue> res = new ArrayList<QValue>();
-		for(Action a : actions){
-			List<GroundedAction> applications = a.getAllApplicableGroundedActions(s);
-			List<AbstractGroundedAction> affActions = affController.getPrunedActionsForState(s);
-			for(GroundedAction ga : applications){
-				if(affActions.contains(ga)){
-					res.add(this.getQ(sh, ga, matching));
-				}
-			}
+		List<AbstractGroundedAction> affActions = affController.getPrunedActionsForState(this.actions, s);
+		
+		for(AbstractGroundedAction ga : affActions){
+			res.add(this.getQ(sh, (GroundedAction)ga, matching));
 		}
 		
 		return res;
 	}
-	
 	
 	
 	@Override
