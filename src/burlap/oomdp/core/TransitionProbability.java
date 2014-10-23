@@ -23,4 +23,8 @@ public class TransitionProbability {
 		this.p = p;
 	}
 	
+	@Override
+	public String toString() {
+		return Double.toString(this.p);
+	}
 }

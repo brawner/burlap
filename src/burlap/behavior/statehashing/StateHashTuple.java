@@ -20,7 +20,7 @@ import burlap.oomdp.core.State;
 public abstract class StateHashTuple {
 
 	private final State							s;
-	private final int 						hashCode;
+	private final int	 						hashCode;
 	//protected final boolean						needToRecomputeHashCode;
 	
 	

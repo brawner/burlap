@@ -315,6 +315,11 @@ public abstract class Policy {
 			this.ga = ga;
 			this.pSelection = p;
 		}
+	
+		@Override 
+		public String toString() {
+			return this.ga.toString() + ": " + this.pSelection;
+		}
 		
 	}
 	

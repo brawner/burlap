@@ -689,7 +689,7 @@ public final class State {
 	 * @return the list of observable object instances in this state.
 	 */
 	public List <ObjectInstance> getObservableObjects(){
-		return new ArrayList <ObjectInstance>(objectInstances);
+		return this.objectInstances;
 	}
 	
 	
@@ -698,7 +698,7 @@ public final class State {
 	 * @return the list of hidden object instances in this state.
 	 */
 	public List <ObjectInstance> getHiddenObjects(){
-		return new ArrayList <ObjectInstance>(hiddenObjectInstances);
+		return this.hiddenObjectInstances;
 	}
 	
 	

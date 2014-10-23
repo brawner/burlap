@@ -477,10 +477,10 @@ public final class ObjectInstance {
 	}
 	
 	public StringBuilder buildObjectDescription(StringBuilder builder) {
-		builder = builder.append(name).append(" (").append(this.getTrueClassName()).append(")\n");
+		builder = builder.append(name).append(" (").append(this.getTrueClassName()).append(")");
 		for(Value v : values){
-			builder = builder.append("\t").append(v.attName()).append(":\t");
-			builder = v.buildStringVal(builder).append("\n");
+			builder = builder.append("\n\t").append(v.attName()).append(":\t");
+			builder = v.buildStringVal(builder);
 		}
 		
 		return builder;

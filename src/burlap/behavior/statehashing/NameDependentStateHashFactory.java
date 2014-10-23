@@ -1,9 +1,14 @@
 package burlap.behavior.statehashing;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import burlap.oomdp.core.ObjectInstance;
 import burlap.oomdp.core.State;
@@ -24,70 +29,76 @@ import burlap.oomdp.core.State;
  */
 public class NameDependentStateHashFactory implements StateHashFactory {
 
-	protected List <String>				objectNameOrder;
-	protected Set <String>				objectNames;
-	
+	//protected List <String>				objectNameOrder;
+	//protected Set <String>				objectNames;
+	private final Map<String, Integer>  objectNameOrderLookup;
 	
 	public NameDependentStateHashFactory(){
-		objectNameOrder = new ArrayList<String>();
-		objectNames = new HashSet<String>();
+		this.objectNameOrderLookup = new HashMap<String, Integer>();
+	}
+	
+	public NameDependentStateHashFactory(NameDependentStateHashFactory other){
+		this.objectNameOrderLookup = new HashMap<String, Integer>(other.objectNameOrderLookup);
+	}
+	
+	public synchronized Integer getObjectPosition(String name) {
+		Integer position = this.objectNameOrderLookup.get(name);
+		if (position == null) {
+			position = this.objectNameOrderLookup.size();
+			this.objectNameOrderLookup.put(name, position);
+		}
+		return position;
+	}
+	
+	public Map<String, Integer> getObjectNameOrderLookup() {
+		return this.objectNameOrderLookup;
+	}
+	
+	public int getMaximumObjectListSize(State state) {
+		return this.objectNameOrderLookup.size() + state.numObservableObjects();
 	}
 	
 	@Override
 	public StateHashTuple hashState(State s) {
-		
-		if(objectNameOrder.size() != s.getObservableObjects().size()){
-			this.addNewObjectNames(s);
-		}
-		
-		
 		return new NameDependentStateHashTuple(s);
 	}
 	
-	protected void addNewObjectNames(State s){
-		List <ObjectInstance> obs = s.getObservableObjects();
-		for(ObjectInstance ob : obs){
-			String name = ob.getName();
-			if(!objectNames.contains(name)){
-				objectNameOrder.add(name);
-				objectNames.add(name);
-			}
-		}
-	}
-	
-	
 	public class NameDependentStateHashTuple extends StateHashTuple{
-
+		
 		public NameDependentStateHashTuple(State s) {
 			super(s);
 		}
 
 		@Override
 		public int computeHashCode() {
+			State state = this.getState();	
+			int listSize = NameDependentStateHashFactory.this.getMaximumObjectListSize(this.getState());
+			ObjectInstance[] orderedObjects = new ObjectInstance[listSize];
+			List<ObjectInstance> objects = state.getObservableObjects();
 			
-			StringBuffer buf = new StringBuffer();
+			for (ObjectInstance object : objects) {
+				String objectName = object.getName();
+				Integer position = NameDependentStateHashFactory.this.getObjectPosition(objectName);
+				if (position == null) {
+					throw new RuntimeException("Entering undiscovered country");
+				}
+				orderedObjects[position] = object;
+			}
 			
-			boolean completeMatch = true;
-			for(String oname : NameDependentStateHashFactory.this.objectNameOrder){
-				ObjectInstance o = this.getState().getObject(oname);
+			StringBuilder buf = new StringBuilder();
+			
+			for (ObjectInstance object : orderedObjects) {
+				if (object != null) {
+					buf = object.buildObjectDescription(buf);
+				}
+			}
+			
+			/*for(String objectName : orderedObjects){
+				ObjectInstance o = this.getState().getObject(objectName);
 				if(o != null){
 					buf.append(o.getObjectDescription());
 				}
-				else{
-					completeMatch = false;
-				}
-			}
-			
-			if(!completeMatch){
-				int start = NameDependentStateHashFactory.this.objectNameOrder.size();
-				NameDependentStateHashFactory.this.addNewObjectNames(this.getState());
-				for(int i = start; i < NameDependentStateHashFactory.this.objectNameOrder.size(); i++){
-					ObjectInstance o = this.getState().getObject(NameDependentStateHashFactory.this.objectNameOrder.get(i));
-					if(o != null){
-						buf.append(o.getObjectDescription());
-					}
-				}
-			}
+			}*/
 			
 			return buf.toString().hashCode();
 			//this.needToRecomputeHashCode = false;
