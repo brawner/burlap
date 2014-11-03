@@ -321,6 +321,24 @@ public abstract class Policy {
 			return this.ga.toString() + ": " + this.pSelection;
 		}
 		
+		@Override
+		public boolean equals(Object other) {
+			if (this == other) {
+				return true;
+			}
+			
+			if (!(other instanceof ActionProb)) {
+				return false;
+			}
+			
+			ActionProb otherProb = (ActionProb)other;
+			
+			if (otherProb.pSelection == this.pSelection && this.ga.equals(otherProb.ga)) {
+				return true;
+			}
+			
+			return false;
+		}
 	}
 	
 	

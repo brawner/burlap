@@ -82,7 +82,12 @@ public class NameDependentStateHashFactory implements StateHashFactory {
 				if (position == null) {
 					throw new RuntimeException("Entering undiscovered country");
 				}
+				if (position >= orderedObjects.length) {
+					throw new RuntimeException("Array size is too small. Tried to access position " + position + " in array of size " + listSize);
+				}
+				
 				orderedObjects[position] = object;
+			
 			}
 			
 			StringBuilder buf = new StringBuilder();

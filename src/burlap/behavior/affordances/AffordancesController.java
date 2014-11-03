@@ -20,7 +20,7 @@ public class AffordancesController {
 
 	private List<AffordanceDelegate> affordances = new ArrayList<AffordanceDelegate>();
 	public List<AbstractGroundedAction> allActions = new ArrayList<AbstractGroundedAction>();
-	public List<PropositionalFunction> affordancePFs = new ArrayList<PropositionalFunction>();
+	public Map<PropositionalFunction, Action> affordancePFs = new HashMap<PropositionalFunction, Action>();
 	
 	public LogicalExpression currentGoal; 
 	private boolean threshold = false; // True when we threshold probabilities to determine actions
@@ -96,8 +96,8 @@ public class AffordancesController {
 	
 	// --- NEW STUFF ---
 	
-	public void setExpertPFs(List<PropositionalFunction> propositionalFunctions) {
-		this.affordancePFs = new ArrayList<PropositionalFunction>(propositionalFunctions);
+	public void setExpertPFs(Map<PropositionalFunction, Action> pfActionMap) {
+		this.affordancePFs = new HashMap<PropositionalFunction, Action>(pfActionMap);
 	}
 	
 	public boolean isPFApplicable(PropositionalFunction pf, Action action) {
@@ -122,21 +122,13 @@ public class AffordancesController {
 		
 		if(expertFlag) {
 			List<GroundedAction> allActions = new ArrayList<GroundedAction>();
-			for (Action action : actions) {
+			for (Map.Entry<PropositionalFunction, Action> entry : this.affordancePFs.entrySet()) {
+				PropositionalFunction pf = entry.getKey();
+				Action action = entry.getValue();
 				List<GroundedAction> groundedActions = action.getAllApplicableGroundedActions(state);
-				allActions.addAll(groundedActions);
-				if (groundedActions.size() > 0) {
-					actionsUsed.add(action.getName());
-				}
-			}
-			for (GroundedAction groundedAction : allActions) {
-				for (PropositionalFunction pf : this.affordancePFs) {
-					if (pf.getName().equals("pourPF") && groundedAction.actionName().equals("pour")) {
-						int c = 1;
-					}
-					if (this.isPFApplicable(pf, groundedAction.action) && pf.isTrue(state, groundedAction.params)) {
+				for (GroundedAction groundedAction : groundedActions) {
+					if (pf.isTrue(state, groundedAction.params)) {
 						result.add(groundedAction);
-						break;
 					}
 				}
 			}

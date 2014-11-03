@@ -11,7 +11,6 @@ import java.util.Set;
 import burlap.behavior.affordances.AffordancesController;
 import burlap.behavior.singleagent.QValue;
 import burlap.behavior.singleagent.planning.QComputablePlanner;
-import burlap.behavior.singleagent.planning.ValueFunctionPlanner;
 import burlap.oomdp.core.AbstractGroundedAction;
 import burlap.oomdp.core.State;
 
@@ -49,6 +48,7 @@ public class AffordanceGreedyQPolicy extends GreedyQPolicy {
 		List <QValue> maxActions = new ArrayList<QValue>();
 		if (filteredQValues.size() == 0) {
 			int c = 1;
+			return null;
 		}
 		maxActions.add(filteredQValues.get(0));
 		double maxQ = filteredQValues.get(0).q;
