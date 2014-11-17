@@ -349,6 +349,9 @@ public abstract class Action {
 		
 		for(List <String> params : bindings){
 			String [] aprams = params.toArray(new String[params.size()]);
+			if (aprams[1].equals("butter_bowl")) {
+				System.out.print("");
+			}
 			if(this.applicableInState(s, aprams)){
 				GroundedAction gp = new GroundedAction(this, aprams);
 				res.add(gp);

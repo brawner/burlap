@@ -26,28 +26,28 @@ public abstract class PropositionalFunction {
 	/*
 	 * name of the propositional function
 	 */
-	protected String					name;
+	protected final String					name;
 	
 	/*
 	 * domain that hosts this function
 	 */
-	protected Domain					domain;
+	protected final Domain					domain;
 	
 	/*
 	 * list of class names for each parameter of the function
 	 */
-	protected String []					parameterClasses;
+	protected final String []				parameterClasses;
 	
 	/*
 	 * Defines symmetry between parameters. For example, setting two or more parameters to the same order group 
 	 * indicates that the function evaluate the same regardless of which specific object is set to each parameter
 	 */
-	protected String []					parameterOrderGroup;
+	protected final String []				parameterOrderGroup;
 	
 	/**
 	 * optional; allows propositional functions to be grouped by class names
 	 */
-	protected String					pfClass;
+	protected final String					pfClass;
 	
 	
 	/**
@@ -73,8 +73,13 @@ public abstract class PropositionalFunction {
 			pog[i] = name + ".P" + i;
 		}
 		
-		this.init(name, domain, pClassArray, pog, name);
 		
+		this.name = name;
+		this.domain = domain;
+		this.domain.addPropositionalFunction(this);
+		this.parameterClasses = pClassArray;
+		this.parameterOrderGroup = pog;
+		this.pfClass = name;
 	}
 	
 	/**
@@ -101,8 +106,12 @@ public abstract class PropositionalFunction {
 			pog[i] = name + ".P" + i;
 		}
 		
-		this.init(name, domain, pClassArray, pog, pfClassName);
-		
+		this.name = name;
+		this.domain = domain;
+		this.domain.addPropositionalFunction(this);
+		this.parameterClasses = pClassArray;
+		this.parameterOrderGroup = pog;
+		this.pfClass = pfClassName;
 	}
 	
 	
@@ -121,8 +130,12 @@ public abstract class PropositionalFunction {
 			rcn[i] = name + ".P" + i;
 		}
 		
-		this.init(name, domain, parameterClasses, rcn, name);
-		
+		this.name = name;
+		this.domain = domain;
+		this.domain.addPropositionalFunction(this);
+		this.parameterClasses = parameterClasses;
+		this.parameterOrderGroup = rcn;
+		this.pfClass = name;
 	}
 	
 	
@@ -142,8 +155,12 @@ public abstract class PropositionalFunction {
 			rcn[i] = name + ".P" + i;
 		}
 		
-		this.init(name, domain, parameterClasses, rcn, pfClassName);
-		
+		this.name = name;
+		this.domain = domain;
+		this.domain.addPropositionalFunction(this);
+		this.parameterClasses = parameterClasses;
+		this.parameterOrderGroup = rcn;
+		this.pfClass = pfClassName;
 	}
 	
 	
@@ -156,7 +173,12 @@ public abstract class PropositionalFunction {
 	 * @param parameterOrderGroup an array of strings specifying order group names for the parameters
 	 */
 	public PropositionalFunction(String name, Domain domain, String [] parameterClasses, String [] parameterOrderGroup){
-		this.init(name, domain, parameterClasses, parameterOrderGroup, name);
+		this.name = name;
+		this.domain = domain;
+		this.domain.addPropositionalFunction(this);
+		this.parameterClasses = parameterClasses;
+		this.parameterOrderGroup = parameterOrderGroup;
+		this.pfClass = name;
 	}
 	
 	
@@ -171,17 +193,21 @@ public abstract class PropositionalFunction {
 	 * @param pfClassName the name of the propositional function class to which this PF belongs.
 	 */
 	public PropositionalFunction(String name, Domain domain, String [] parameterClasses, String [] parameterOrderGroup, String pfClassName){
-		this.init(name, domain, parameterClasses, parameterOrderGroup, pfClassName);
-	}
-	
-	
-	protected final void init(String name, Domain domain, String [] parameterClasses, String [] parameterOrderGroup, String pfClass){
 		this.name = name;
 		this.domain = domain;
 		this.domain.addPropositionalFunction(this);
 		this.parameterClasses = parameterClasses;
 		this.parameterOrderGroup = parameterOrderGroup;
-		this.pfClass = pfClass;
+		this.pfClass = pfClassName;
+	}
+	
+	public PropositionalFunction(PropositionalFunction pf, Domain domain) {
+		this.name = pf.name;
+		this.domain = domain;
+		this.domain.addPropositionalFunction(this);
+		this.parameterClasses = pf.parameterClasses;
+		this.parameterOrderGroup = pf.parameterOrderGroup;
+		this.pfClass = pf.pfClass;
 	}
 	
 	
@@ -214,9 +240,9 @@ public abstract class PropositionalFunction {
 	 * Sets the class name for this propositional function.
 	 * @param cn the propositional function class name to which this PF should be assigned.
 	 */
-	public final void setClassName(String cn){
-		pfClass = cn;
-	}
+	//public final void setClassName(String cn){
+	//	pfClass = cn;
+	//}
 	
 	
 	/**

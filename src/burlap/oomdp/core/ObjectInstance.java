@@ -1,7 +1,13 @@
 package burlap.oomdp.core;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
 
+import burlap.behavior.statehashing.ObjectHashFactory;
+import burlap.behavior.statehashing.ObjectHashTuple;
 import burlap.oomdp.core.Attribute.AttributeType;
 
 
@@ -18,7 +24,7 @@ public final class ObjectInstance {
 	private final ObjectClass					obClass;			//object class to which this object belongs
 	private final String						name;				//name of the object for disambiguation
 	private final List <Value>					values;				//the values for each attribute
-	
+	private final ObjectHashTuple				hashTuple;
 	
 	
 	
@@ -32,6 +38,7 @@ public final class ObjectInstance {
 		this.obClass = obClass;
 		this.name = name;
 		this.values = Collections.unmodifiableList(this.initializeValueObjects());
+		this.hashTuple = ObjectHashTuple.makeTuple(this, null, name.hashCode());
 		
 	}
 	
@@ -45,10 +52,11 @@ public final class ObjectInstance {
 		this.obClass = o.obClass;
 		this.name = o.name;
 		this.values = o.values;
+		this.hashTuple = o.hashTuple;
 			
 	}
 	
-	public ObjectInstance(ObjectClass obClass, String name, List<Value> newValues) {
+	public ObjectInstance(ObjectClass obClass, String name, List<Value> newValues, ObjectHashFactory hashingFactory) {
 		this.obClass = obClass;
 		this.name = name;
 		List<Value> values = new  ArrayList<Value>(newValues);
@@ -60,6 +68,7 @@ public final class ObjectInstance {
 		this.obClass = objectInstance.obClass;
 		this.name = name;
 		this.values = objectInstance.values;
+		this.hashTuple = objectInstance.hashTuple.getHashingFactory().hashObject(this);
 	}
 
 	/**
@@ -571,6 +580,7 @@ public final class ObjectInstance {
 	
 	
 	public int hashCode(){
-		return name.hashCode();
+		//return name.hashCode();
+		return this.hashTuple.hashCode();
 	}
 }

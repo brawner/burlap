@@ -88,6 +88,9 @@ public class AffordanceRTDP extends RTDP {
 				
 				// Select an action
 				GroundedAction ga = (GroundedAction)this.rollOutPolicy.getAction(curState);
+				if (ga == null) {
+					ga =  (GroundedAction)this.rollOutPolicy.getAction(curState);
+				}
 				rolloutActions.add(ga);
 
 //				System.out.println("(affRTDP)Action : " + ga.actionName());

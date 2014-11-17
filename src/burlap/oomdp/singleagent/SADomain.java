@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 
 import burlap.oomdp.core.Domain;
+import burlap.oomdp.core.PropositionalFunction;
 import burlap.oomdp.stochasticgames.SingleAction;
 
 
@@ -18,13 +19,25 @@ import burlap.oomdp.stochasticgames.SingleAction;
  */
 public class SADomain extends Domain {
 
-	protected List <Action>							actions;				//list of actions
-	protected Map <String, Action>					actionMap;				//lookup actions by name
+	protected final List <Action>							actions;				//list of actions
+	protected final Map <String, Action>					actionMap;				//lookup actions by name
 	
 	public SADomain() {
 		super();
 		actions = new ArrayList <Action>();
 		actionMap = new HashMap <String, Action>();
+	}
+	
+	public SADomain(SADomain domain) {
+		super(domain);
+		actions = new ArrayList <Action>(domain.actions);
+		actionMap = new HashMap <String, Action>(domain.actionMap);
+	}
+	
+	public SADomain(SADomain domain, List<PropositionalFunction> propFunctions) {
+		super(domain, propFunctions);
+		actions = new ArrayList <Action>(domain.actions);
+		actionMap = new HashMap <String, Action>(domain.actionMap);
 	}
 
 	

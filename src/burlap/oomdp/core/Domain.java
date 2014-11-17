@@ -16,14 +16,14 @@ import burlap.oomdp.stochasticgames.SingleAction;
 public abstract class Domain {
 	
 	
-	protected List <ObjectClass>						objectClasses;			//list of object classes
-	protected Map <String, ObjectClass>					objectClassMap;			//look up object classes by name
+	protected final List <ObjectClass>					objectClasses;			//list of object classes
+	protected final Map <String, ObjectClass>			objectClassMap;			//look up object classes by name
 	
-	protected List <Attribute>							attributes;				//list of attributes
-	protected Map <String, Attribute>					attributeMap;			//lookup attributes by name
+	protected final List <Attribute>					attributes;				//list of attributes
+	protected final Map <String, Attribute>				attributeMap;			//lookup attributes by name
 	
-	protected List <PropositionalFunction>				propFunctions;			//list of propositional functions
-	protected Map <String, PropositionalFunction> 		propFunctionMap;		//lookup propositional functions by name
+	protected final List <PropositionalFunction>		propFunctions;			//list of propositional functions
+	protected final Map <String, PropositionalFunction> propFunctionMap;		//lookup propositional functions by name
 	
 	protected boolean									objectIdentifierDependentDomain = false;
 	
@@ -46,7 +46,38 @@ public abstract class Domain {
 		
 	}
 	
+	public Domain(Domain domain) {
+		objectClasses = new ArrayList <ObjectClass>(domain.objectClasses);
+		objectClassMap = new HashMap <String, ObjectClass>(domain.objectClassMap);
+		
+		attributes = new ArrayList <Attribute>(domain.attributes);
+		attributeMap = new HashMap <String, Attribute>(domain.attributeMap);
+		
+		propFunctions = new ArrayList <PropositionalFunction>(domain.propFunctions);
+		propFunctionMap = new HashMap <String, PropositionalFunction>(domain.propFunctionMap);
 	
+	}
+	
+	
+	public Domain(Domain domain, List<PropositionalFunction> propFunctions) {
+		this.objectClasses = new ArrayList <ObjectClass>(domain.objectClasses);
+		this.objectClassMap = new HashMap <String, ObjectClass>(domain.objectClassMap);
+		
+		this.attributes = new ArrayList <Attribute>(domain.attributes);
+		this.attributeMap = new HashMap <String, Attribute>(domain.attributeMap);
+		
+		this.propFunctionMap = this.buildPropFunctionMap(propFunctions);
+		this.propFunctions = new ArrayList <PropositionalFunction>(this.propFunctionMap.values());
+	}
+	
+	private final Map<String, PropositionalFunction> buildPropFunctionMap(List<PropositionalFunction> propFunctions) {
+		Map<String, PropositionalFunction> pfMap = new HashMap<String, PropositionalFunction>();
+		for (PropositionalFunction pf : propFunctions) {
+			pfMap.put(pf.getName(), pf);
+		}
+		return pfMap;
+	}
+
 	/**
 	 * Sets whether this domain's states are object identifier (name) dependent. In an OO-MDP states are represented
 	 * as a set of object instances; therefore state equality can either be determined by whether there is a
