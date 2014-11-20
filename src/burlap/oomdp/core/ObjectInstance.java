@@ -8,6 +8,7 @@ import java.util.Set;
 
 import burlap.behavior.statehashing.ObjectHashFactory;
 import burlap.behavior.statehashing.ObjectHashTuple;
+import burlap.behavior.statehashing.ValueHashFactory;
 import burlap.oomdp.core.Attribute.AttributeType;
 
 
@@ -33,12 +34,12 @@ public final class ObjectInstance {
 	 * @param obClass the object class to which this object belongs
 	 * @param name the name of the object
 	 */
-	public ObjectInstance(ObjectClass obClass, String name){
+	public ObjectInstance(ObjectClass obClass, String name, ObjectHashFactory hashingFactory){
 		
 		this.obClass = obClass;
 		this.name = name;
-		this.values = Collections.unmodifiableList(this.initializeValueObjects());
-		this.hashTuple = ObjectHashTuple.makeTuple(this, null, name.hashCode());
+		this.values = Collections.unmodifiableList(this.initializeValueObjects(hashingFactory.getValueHashFactory()));
+		this.hashTuple = hashingFactory.hashObject(this);
 		
 	}
 	
@@ -61,6 +62,7 @@ public final class ObjectInstance {
 		this.name = name;
 		List<Value> values = new  ArrayList<Value>(newValues);
 		this.values = Collections.unmodifiableList(values);
+		this.hashTuple = hashingFactory.hashObject(this);
 	}
 	
 	
@@ -83,19 +85,20 @@ public final class ObjectInstance {
 	
 	/**
 	 * Creates new value object assignments for each of this object instance class's attributes.
+	 * @param valueHashFactory 
 	 */
-	public List <Value> initializeValueObjects(){
+	public List <Value> initializeValueObjects(ValueHashFactory valueHashFactory){
 		
 		List <Value> values = new ArrayList <Value>(obClass.numAttributes());
 		for(Attribute att : obClass.attributeList){
-			values.add(att.valueConstructor());
+			values.add(att.valueConstructor(valueHashFactory));
 		}
 		return values;
 	}
 	
 	
 	public ObjectInstance replaceName(String name){
-		return new ObjectInstance(this.obClass, name, this.values);
+		return new ObjectInstance(this.obClass, name, this.values, this.hashTuple.getHashingFactory());
 	}
 	
 	/**
@@ -112,7 +115,7 @@ public final class ObjectInstance {
 		int ind = obClass.attributeIndex(attName);
 		Value value = values.get(ind);
 		values.set(ind, value.changeValue(v));
-		return new ObjectInstance(this.obClass, this.name, values);
+		return new ObjectInstance(this.obClass, this.name, values, this.hashTuple.getHashingFactory());
 	}
 	
 	/**
@@ -135,7 +138,7 @@ public final class ObjectInstance {
 		int ind = obClass.attributeIndex(attName);
 		Value value = values.get(ind);
 		values.set(ind, value.changeValue(v));
-		return new ObjectInstance(this.obClass, this.name, values);
+		return new ObjectInstance(this.obClass, this.name, values, this.hashTuple.getHashingFactory());
 	}
 	
 	/**
@@ -157,7 +160,7 @@ public final class ObjectInstance {
 		int ind = obClass.attributeIndex(attName);
 		Value value = values.get(ind);
 		values.set(ind, value.changeValue(v));
-		return new ObjectInstance(this.obClass, this.name, values);
+		return new ObjectInstance(this.obClass, this.name, values, this.hashTuple.getHashingFactory());
 	}
 	
 	/**
@@ -179,7 +182,7 @@ public final class ObjectInstance {
 		int ind = obClass.attributeIndex(attName);
 		Value value = values.get(ind);
 		values.set(ind, value.changeValue(v));
-		return new ObjectInstance(this.obClass, this.name, values);
+		return new ObjectInstance(this.obClass, this.name, values, this.hashTuple.getHashingFactory());
 	}
 	
 	/**
@@ -202,7 +205,7 @@ public final class ObjectInstance {
 		int ind = obClass.attributeIndex(attName);
 		Value value = values.get(ind);
 		values.set(ind, value.changeValue(v));
-		return new ObjectInstance(this.obClass, this.name, values);
+		return new ObjectInstance(this.obClass, this.name, values, this.hashTuple.getHashingFactory());
 	}
 	
 	/**
@@ -224,7 +227,7 @@ public final class ObjectInstance {
 		int ind = obClass.attributeIndex(attName);
 		Value value = values.get(ind);
 		values.set(ind, value.changeValue(v));
-		return new ObjectInstance(this.obClass, this.name, values);
+		return new ObjectInstance(this.obClass, this.name, values, this.hashTuple.getHashingFactory());
 	}
 	
 	/**
@@ -247,7 +250,7 @@ public final class ObjectInstance {
 		int ind = obClass.attributeIndex(attName);
 		Value value = values.get(ind);
 		values.set(ind, value.appendRelationalTarget(target));
-		return new ObjectInstance(this.obClass, this.name, values);
+		return new ObjectInstance(this.obClass, this.name, values, this.hashTuple.getHashingFactory());
 	}
 	
 	/**
@@ -270,7 +273,7 @@ public final class ObjectInstance {
 		int ind = obClass.attributeIndex(attName);
 		Value value = values.get(ind);
 		values.set(ind, value.appendAllRelationalTargets(targets));
-		return new ObjectInstance(this.obClass, this.name, values);
+		return new ObjectInstance(this.obClass, this.name, values, this.hashTuple.getHashingFactory());
 	}
 	
 	/**
@@ -294,7 +297,7 @@ public final class ObjectInstance {
 		int ind = obClass.attributeIndex(attName);
 		Value value = values.get(ind);
 		values.set(ind, value.removeAllRelationalTargets());
-		return new ObjectInstance(this.obClass, this.name, values);
+		return new ObjectInstance(this.obClass, this.name, values, this.hashTuple.getHashingFactory());
 	}
 	
 	/**
@@ -315,7 +318,7 @@ public final class ObjectInstance {
 		int ind = obClass.attributeIndex(attName);
 		Value value = values.get(ind);
 		values.set(ind, value.replaceRelationalTarget(target));
-		return new ObjectInstance(this.obClass, this.name, values);
+		return new ObjectInstance(this.obClass, this.name, values, this.hashTuple.getHashingFactory());
 	}
 	
 	/**
@@ -582,5 +585,9 @@ public final class ObjectInstance {
 	public int hashCode(){
 		//return name.hashCode();
 		return this.hashTuple.hashCode();
+	}
+
+	public ObjectHashTuple getHashTuple() {
+		return this.hashTuple;
 	}
 }

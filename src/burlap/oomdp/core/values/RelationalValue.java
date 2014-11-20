@@ -4,6 +4,7 @@ import java.util.Collection;
 import java.util.Set;
 import java.util.TreeSet;
 
+import burlap.behavior.statehashing.ValueHashFactory;
 import burlap.oomdp.core.Attribute;
 import burlap.oomdp.core.Value;
 
@@ -27,9 +28,10 @@ public class RelationalValue extends Value {
 	 * Initializes this value to be an assignment for Attribute attribute.
 	 * @param attribute
 	 */
-	public RelationalValue(Attribute attribute){
-		super(attribute);
+	public RelationalValue(Attribute attribute, ValueHashFactory hashingFactory){
+		super(attribute, hashingFactory);
 		this.target = "";
+		this.computeHash(hashingFactory);
 	}
 	
 	
@@ -43,10 +45,17 @@ public class RelationalValue extends Value {
 		this.target = rv.target;
 	}
 	
-	public RelationalValue(Attribute attribute, String target) {
-		super(attribute);
+	public RelationalValue(Attribute attribute, String target, ValueHashFactory hashingFactory) {
+		super(attribute, hashingFactory);
 		this.target = target;
+		this.computeHash(hashingFactory);
 	}
+	
+	@Override
+	public boolean isSet() {
+		return true;
+	}
+
 	
 	@Override
 	public Value copy() {
@@ -55,22 +64,22 @@ public class RelationalValue extends Value {
 	
 	@Override
 	public Value changeValue(String v) {
-		return new RelationalValue(this.attribute, v);
+		return new RelationalValue(this.attribute, v, this.hashTuple.getHashFactory());
 	}
 	
 	@Override
 	public Value appendRelationalTarget(String v) {
-		return new RelationalValue(this.attribute, v);
+		return new RelationalValue(this.attribute, v, this.hashTuple.getHashFactory());
 	}
 	
 	@Override
 	public Value removeAllRelationalTargets(){
-		return new RelationalValue(attribute);
+		return new RelationalValue(attribute, this.hashTuple.getHashFactory());
 	}
 	
 	@Override
 	public Value replaceRelationalTarget(String target){
-		return new RelationalValue(this.attribute);
+		return new RelationalValue(this.attribute, this.hashTuple.getHashFactory());
 	}
 	
 	@Override

@@ -124,7 +124,7 @@ public class TabulatedDomainWrapper implements DomainGenerator {
 	public State getTabularizedState(State s){
 		int id = this.enumerator.getEnumeratedID(s);
 		State ts = new State();
-		ObjectInstance o = new ObjectInstance(this.tabDomain.getObjectClass(CLASSSTATE), "state");
+		ObjectInstance o = new ObjectInstance(this.tabDomain.getObjectClass(CLASSSTATE), "state", null);
 		o.setValue(ATTSTATE, id);
 		ts.addObject(o);
 		return ts;

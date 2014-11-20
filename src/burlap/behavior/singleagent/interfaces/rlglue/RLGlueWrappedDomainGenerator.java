@@ -97,14 +97,14 @@ public class RLGlueWrappedDomainGenerator implements DomainGenerator {
 	public State stateFromObservation(Observation obsv){
 		State s = new State();
 		if(this.hasDiscAtts){
-			ObjectInstance o = new ObjectInstance(this.domain.getObjectClass(DISCRETECLASS), "discreteVals");
+			ObjectInstance o = new ObjectInstance(this.domain.getObjectClass(DISCRETECLASS), "discreteVals", null);
 			s.addObject(o);
 			for(int i = 0; i < obsv.intArray.length; i++){
 				o.setValue(DISCATT+i, obsv.intArray[i]);
 			}
 		}
 		if(this.hasRealAtts){
-			ObjectInstance o = new ObjectInstance(this.domain.getObjectClass(REALCLASS), "realVals");
+			ObjectInstance o = new ObjectInstance(this.domain.getObjectClass(REALCLASS), "realVals", null);
 			s.addObject(o);
 			for(int i = 0; i < obsv.doubleArray.length; i++){
 				o.setValue(REALATT+i, obsv.doubleArray[i]);
@@ -122,7 +122,7 @@ public class RLGlueWrappedDomainGenerator implements DomainGenerator {
 	 */
 	public State getTerminalState(){
 		State s = new State();
-		ObjectInstance o = new ObjectInstance(this.domain.getObjectClass(TERMCLASS), "terminal");
+		ObjectInstance o = new ObjectInstance(this.domain.getObjectClass(TERMCLASS), "terminal", null);
 		o.setValue(TERMATT, 1);
 		s.addObject(o);
 		return s;

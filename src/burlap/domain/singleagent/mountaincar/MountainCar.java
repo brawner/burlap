@@ -180,7 +180,7 @@ public class MountainCar implements DomainGenerator {
 	 */
 	public State getCleanState(Domain domain){
 		State s = new State();
-		ObjectInstance a = new ObjectInstance(domain.getObjectClass(CLASSAGENT), CLASSAGENT);
+		ObjectInstance a = new ObjectInstance(domain.getObjectClass(CLASSAGENT), CLASSAGENT, null);
 		s.addObject(a);
 		setAgent(s, -(Math.PI/2) / this.cosScale, 0.);
 		return s;

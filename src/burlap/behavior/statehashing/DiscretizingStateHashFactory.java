@@ -381,6 +381,13 @@ public class DiscretizingStateHashFactory implements StateHashFactory {
 		
 		
 	}
+
+
+	@Override
+	public ObjectHashFactory getObjectHashFactory() {
+		// TODO Auto-generated method stub
+		return null;
+	}
 	
 	
 	

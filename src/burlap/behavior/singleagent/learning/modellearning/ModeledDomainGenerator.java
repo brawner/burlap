@@ -140,7 +140,7 @@ public class ModeledDomainGenerator implements DomainGenerator{
 			this.useRMax = useRMax;
 			if(useRMax){
 				RMaxState = new State();
-				ObjectInstance o = new ObjectInstance(ModeledDomainGenerator.this.modelDomain.getObjectClass(RMAXFICTIOUSSTATENAME), "rmax");
+				ObjectInstance o = new ObjectInstance(ModeledDomainGenerator.this.modelDomain.getObjectClass(RMAXFICTIOUSSTATENAME), "rmax", null);
 				o.setValue(RMAXFICTIOUSSTATENAME, 1);
 				RMaxState.addObject(o);
 			}

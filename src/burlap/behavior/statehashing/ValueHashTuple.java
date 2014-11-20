@@ -7,16 +7,18 @@ public class ValueHashTuple {
 	private final Value value;
 	private final int hashCode;
 	
-	private ValueHashTuple(Value value, ValueHashFactory hashingFactory, int hashCode) {
+	public ValueHashTuple(Value value, ValueHashFactory hashingFactory, int hashCode) {
 		this.value = value;
 		this.hashingFactory = hashingFactory;
 		this.hashCode = hashCode;
 	}
 	
-	public static ValueHashTuple createTuple(Value value, ValueHashFactory hashingFactory, int code) {
-		if (value == null || hashingFactory == null) {
-			return null;
-		}
-		return new ValueHashTuple(value, hashingFactory, code);
+	public ValueHashFactory getHashFactory() {
+		return this.hashingFactory;
+	}
+	
+	@Override
+	public int hashCode() {
+		return this.hashCode;
 	}
 }

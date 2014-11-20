@@ -499,7 +499,7 @@ public class GridGame implements DomainGenerator {
 	 */
 	protected static void addNObjects(Domain d, State s, String className, int n){
 		for(int i = 0; i < n; i++){
-			ObjectInstance o = new ObjectInstance(d.getObjectClass(className), className+i);
+			ObjectInstance o = new ObjectInstance(d.getObjectClass(className), className+i, null);
 			s.addObject(o);
 		}
 	}

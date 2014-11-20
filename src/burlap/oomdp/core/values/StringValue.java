@@ -3,6 +3,7 @@ package burlap.oomdp.core.values;
 import java.util.Collection;
 import java.util.Set;
 
+import burlap.behavior.statehashing.ValueHashFactory;
 import burlap.oomdp.core.Attribute;
 import burlap.oomdp.core.Value;
 
@@ -24,9 +25,10 @@ public class StringValue extends Value {
 	 * Initializes for a given attribute. The default value will be set to 0.
 	 * @param attribute
 	 */
-	public StringValue(Attribute attribute) {
-		super(attribute);
+	public StringValue(Attribute attribute, ValueHashFactory hashingFactory) {
+		super(attribute, hashingFactory);
 		this.stringVal = "";
+		this.computeHash(hashingFactory);
 	}
 	
 	
@@ -39,9 +41,15 @@ public class StringValue extends Value {
 		this.stringVal = ((StringValue)v).stringVal;
 	}
 	
-	public StringValue(Attribute attribute, String v) {
-		super(attribute);
+	public StringValue(Attribute attribute, String v, ValueHashFactory hashingFactory) {
+		super(attribute, hashingFactory);
 		this.stringVal = v;
+		this.computeHash(hashingFactory);
+	}
+	
+	@Override
+	public boolean isSet() {
+		return !this.stringVal.equals("");
 	}
 
 	@Override
@@ -51,17 +59,17 @@ public class StringValue extends Value {
 
 	@Override
 	public Value changeValue(int v) {
-		return new StringValue(this.attribute, Integer.toString(v));
+		return new StringValue(this.attribute, Integer.toString(v), this.hashTuple.getHashFactory());
 	}
 	
 	@Override
 	public Value changeValue(double v) {
-		return new StringValue(this.attribute, Double.toString(v));
+		return new StringValue(this.attribute, Double.toString(v), this.hashTuple.getHashFactory());
 	}
 	
 	@Override
 	public Value changeValue(String v) {
-		return new StringValue(this.attribute, v);
+		return new StringValue(this.attribute, v, this.hashTuple.getHashFactory());
 	}
 	
 	@Deprecated

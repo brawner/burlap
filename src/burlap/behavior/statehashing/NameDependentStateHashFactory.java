@@ -26,7 +26,7 @@ public class NameDependentStateHashFactory implements StateHashFactory {
 	//protected List <String>				objectNameOrder;
 	//protected Set <String>				objectNames;
 	private final Map<String, Integer>  objectNameOrderLookup;
-	
+	private final NameDependentObjectHashFactory hashingFactory = new NameDependentObjectHashFactory();
 	public NameDependentStateHashFactory(){
 		this.objectNameOrderLookup = new HashMap<String, Integer>();
 	}
@@ -69,8 +69,11 @@ public class NameDependentStateHashFactory implements StateHashFactory {
 			int listSize = NameDependentStateHashFactory.this.getMaximumObjectListSize(this.getState());
 			ObjectInstance[] orderedObjects = new ObjectInstance[listSize];
 			List<ObjectInstance> objects = state.getObservableObjects();
-			
+			int code = 0;
 			for (ObjectInstance object : objects) {
+				code += object.hashCode();
+				
+				/*
 				String objectName = object.getName();
 				Integer position = NameDependentStateHashFactory.this.getObjectPosition(objectName);
 				if (position == null) {
@@ -80,17 +83,19 @@ public class NameDependentStateHashFactory implements StateHashFactory {
 					throw new RuntimeException("Array size is too small. Tried to access position " + position + " in array of size " + listSize);
 				}
 				
-				orderedObjects[position] = object;
+				orderedObjects[position] = object;*/
 			
 			}
-			
+			/*
 			StringBuilder buf = new StringBuilder();
 			
 			for (ObjectInstance object : orderedObjects) {
 				if (object != null) {
-					buf = object.buildObjectDescription(buf);
+					code += object.hashCode();
+					//buf = object.buildObjectDescription(buf);
 				}
-			}
+			}*/
+			return code;
 			
 			/*for(String objectName : orderedObjects){
 				ObjectInstance o = this.getState().getObject(objectName);
@@ -99,7 +104,7 @@ public class NameDependentStateHashFactory implements StateHashFactory {
 				}
 			}*/
 			
-			return buf.toString().hashCode();
+			//return buf.toString().hashCode();
 			//this.needToRecomputeHashCode = false;
 			
 		}
@@ -147,6 +152,11 @@ public class NameDependentStateHashFactory implements StateHashFactory {
 		
 		
 		
+	}
+
+	@Override
+	public ObjectHashFactory getObjectHashFactory() {
+		return this.hashingFactory;
 	}
 	
 

@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Set;
 
+import burlap.behavior.statehashing.ValueHashFactory;
 import burlap.oomdp.core.Attribute;
 import burlap.oomdp.core.Value;
 
@@ -20,9 +21,10 @@ public class DoubleArrayValue extends Value{
 
 	protected final double [] doubleArray;
 	
-	public DoubleArrayValue(Attribute attribute) {
-		super(attribute);
+	public DoubleArrayValue(Attribute attribute, ValueHashFactory hashingFactory) {
+		super(attribute, hashingFactory);
 		this.doubleArray = null;
+		this.computeHash(hashingFactory);
 	}
 	
 	public DoubleArrayValue(Value v){
@@ -32,10 +34,16 @@ public class DoubleArrayValue extends Value{
 	}
 	
 
- 	public DoubleArrayValue(Attribute attribute, double[] arry) {
- 		super(attribute);
+ 	public DoubleArrayValue(Attribute attribute, ValueHashFactory hashingFactory, double[] arry) {
+ 		super(attribute, hashingFactory);
  		this.doubleArray = (arry == null) ? null : arry.clone();
+ 		this.computeHash(hashingFactory);
  	}
+ 	
+ 	@Override
+ 	public boolean isSet() {
+		return !(this.doubleArray == null);
+	}
 
 	@Override
 	public Value copy() {
@@ -52,7 +60,7 @@ public class DoubleArrayValue extends Value{
 		for(int i = 0; i < comps.length; i++){
 			doubleArray[i] = Double.parseDouble(comps[i]);
 		}
-		return new DoubleArrayValue(this.attribute, doubleArray);
+		return new DoubleArrayValue(this.attribute, this.hashTuple.getHashFactory(), doubleArray);
 	}
 	
 	@Override
@@ -61,12 +69,12 @@ public class DoubleArrayValue extends Value{
 		for(int i = 0; i < intArray.length; i++){
 			doubleArray[i] = intArray[i];
 		}
-		return new DoubleArrayValue(this.attribute, doubleArray);
+		return new DoubleArrayValue(this.attribute, this.hashTuple.getHashFactory(), doubleArray);
 	}
 	
 	@Override
 	public Value changeValue(double[] doubleArray) {
-		return new DoubleArrayValue(this.attribute, doubleArray);
+		return new DoubleArrayValue(this.attribute, this.hashTuple.getHashFactory(), doubleArray);
 	}
 	
 	@Override

@@ -8,6 +8,7 @@ import java.util.Map;
 
 import javax.management.RuntimeErrorException;
 
+import burlap.behavior.statehashing.ValueHashFactory;
 import burlap.oomdp.core.values.DiscreteValue;
 import burlap.oomdp.core.values.DoubleArrayValue;
 import burlap.oomdp.core.values.IntArrayValue;
@@ -361,30 +362,30 @@ public class Attribute {
 	 * This method will not work for NOTYPE attributes.
 	 * @return a Value object compatible with this Attributes type (i.e., discrete or real)
 	 */
-	public Value valueConstructor(){
+	public Value valueConstructor(ValueHashFactory hashingFactory){
 		if(this.type == Attribute.AttributeType.DISC || this.type == AttributeType.BOOLEAN){
-			return new DiscreteValue(this);
+			return new DiscreteValue(this, hashingFactory);
 		}
 		else if(this.type == AttributeType.REAL || this.type == AttributeType.REALUNBOUND){
-			return new RealValue(this);
+			return new RealValue(this, hashingFactory);
 		}
 		else if(this.type == AttributeType.RELATIONAL){
-			return new RelationalValue(this);
+			return new RelationalValue(this, hashingFactory);
 		}
 		else if(this.type == AttributeType.MULTITARGETRELATIONAL){
-			return new MultiTargetRelationalValue(this);
+			return new MultiTargetRelationalValue(this, hashingFactory);
 		}
 		else if(this.type == AttributeType.INT){
-			return new IntValue(this);
+			return new IntValue(this, hashingFactory);
 		}
 		else if(this.type == AttributeType.STRING){
-			return new StringValue(this);
+			return new StringValue(this, hashingFactory);
 		}
 		else if(this.type == AttributeType.INTARRAY){
-			return new IntArrayValue(this);
+			return new IntArrayValue(this, hashingFactory);
 		}
 		else if(this.type == AttributeType.DOUBLEARRAY){
-			return new DoubleArrayValue(this);
+			return new DoubleArrayValue(this, hashingFactory);
 		}
 		
 		throw new RuntimeErrorException(new Error("Unknown attribute type; cannot construct a corresponding Value for it."));

@@ -148,7 +148,7 @@ public class BlocksWorld implements DomainGenerator {
 		State s = new State();
 		ObjectClass oc = d.getObjectClass(CLASSBLOCK);
 		for(int i = 0; i < nBlocks; i++){
-			ObjectInstance o = new ObjectInstance(oc, CLASSBLOCK+i);
+			ObjectInstance o = new ObjectInstance(oc, CLASSBLOCK+i, null);
 			setBlock(o, "", 1, 1, COLORRED);
 			s.addObject(o);
 		}

@@ -148,7 +148,7 @@ public class MacroCellGridWorld extends GridWorldDomain {
 			ry = r.nextInt(map[0].length);
 		}while(map[rx][ry] == 1);
 		
-		ObjectInstance agent = new ObjectInstance(d.getObjectClass(CLASSAGENT), CLASSAGENT+0);
+		ObjectInstance agent = new ObjectInstance(d.getObjectClass(CLASSAGENT), CLASSAGENT+0, null);
 		agent.setValue(ATTX, rx);
 		agent.setValue(ATTY, ry);
 		s.addObject(agent);

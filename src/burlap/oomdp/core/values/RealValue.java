@@ -3,6 +3,7 @@ package burlap.oomdp.core.values;
 import java.util.Collection;
 import java.util.Set;
 
+import burlap.behavior.statehashing.ValueHashFactory;
 import burlap.oomdp.core.Attribute;
 import burlap.oomdp.core.Value;
 
@@ -24,9 +25,10 @@ public class RealValue extends Value {
 	 * Initializes this value to be an assignment for Attribute attribute.
 	 * @param attribute
 	 */
-	public RealValue(Attribute attribute){
-		super(attribute);
+	public RealValue(Attribute attribute, ValueHashFactory hashingFactory){
+		super(attribute, hashingFactory);
 		this.realVal = Double.NaN;
+		this.computeHash(hashingFactory);
 	}
 	
 	
@@ -40,10 +42,17 @@ public class RealValue extends Value {
 		this.realVal = rv.realVal;
 	}
 	
-	public RealValue(Attribute attribute, double realVal) {
-		super(attribute);
+	public RealValue(Attribute attribute, double realVal, ValueHashFactory hashingFactory) {
+		super(attribute, hashingFactory);
 		this.realVal = realVal;
+		this.computeHash(hashingFactory);
 	}
+
+	@Override
+	public boolean isSet() {
+		return Double.isNaN(this.realVal);
+	}
+
 	
 	@Override
 	public Value copy(){
@@ -52,17 +61,17 @@ public class RealValue extends Value {
 	
 	@Override
 	public Value changeValue(int v) {
-		return new RealValue(this.attribute, (double)v);
+		return new RealValue(this.attribute, (double)v, this.hashTuple.getHashFactory());
 	}
 	
 	@Override
 	public Value changeValue(double v) {
-		return new RealValue(this.attribute, v);
+		return new RealValue(this.attribute, v, this.hashTuple.getHashFactory());
 	}
 	
 	@Override
 	public Value changeValue(String v) {
-		return new RealValue(this.attribute, Double.parseDouble(v));
+		return new RealValue(this.attribute, Double.parseDouble(v), this.hashTuple.getHashFactory());
 	}
 	
 	@Override

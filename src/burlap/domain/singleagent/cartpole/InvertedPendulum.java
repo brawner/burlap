@@ -221,7 +221,7 @@ public class InvertedPendulum implements DomainGenerator {
 	 */
 	public static State getInitialState(Domain domain, double angle, double angleVelocity){
 		State s = new State();
-		ObjectInstance o = new ObjectInstance(domain.getObjectClass(CLASSPENDULUM), CLASSPENDULUM);
+		ObjectInstance o = new ObjectInstance(domain.getObjectClass(CLASSPENDULUM), CLASSPENDULUM, null);
 		o.setValue(ATTANGLE, angle);
 		o.setValue(ATTANGLEV, angleVelocity);
 		s.addObject(o);

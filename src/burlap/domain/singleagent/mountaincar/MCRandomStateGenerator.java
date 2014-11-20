@@ -172,7 +172,7 @@ public class MCRandomStateGenerator implements StateGenerator {
 	public State generateState() {
 		
 		State s = new State();
-		ObjectInstance agent = new ObjectInstance(this.domain.getObjectClass(MountainCar.CLASSAGENT), MountainCar.CLASSAGENT);
+		ObjectInstance agent = new ObjectInstance(this.domain.getObjectClass(MountainCar.CLASSAGENT), MountainCar.CLASSAGENT, null);
 		s.addObject(agent);
 		
 		double rx = this.rand.nextDouble() * (this.xmax - this.xmin) + this.xmin;

@@ -3,6 +3,7 @@ package burlap.oomdp.core.values;
 import java.util.Collection;
 import java.util.Set;
 
+import burlap.behavior.statehashing.ValueHashFactory;
 import burlap.oomdp.core.Attribute;
 import burlap.oomdp.core.Value;
 
@@ -27,9 +28,10 @@ public class IntValue extends Value {
 	 * Initializes for a given attribute. The default value will be set to 0.
 	 * @param attribute
 	 */
-	public IntValue(Attribute attribute) {
-		super(attribute);
+	public IntValue(Attribute attribute, ValueHashFactory hashingFactory) {
+		super(attribute, hashingFactory);
 		this.intVal = 0;
+		this.computeHash(hashingFactory);
 	}
 	
 	
@@ -42,10 +44,17 @@ public class IntValue extends Value {
 		this.intVal = ((IntValue)v).intVal;
 	}
 	
-	public IntValue(Attribute attribute, int v) {
-		super(attribute);
+	public IntValue(Attribute attribute, int v, ValueHashFactory hashingFactory) {
+		super(attribute, hashingFactory);
 		this.intVal = v;
+		this.computeHash(hashingFactory);
 	}
+	
+	@Override
+	public boolean isSet() {
+		return true;
+	}
+
 
 	@Override
 	public Value copy() {
@@ -54,22 +63,22 @@ public class IntValue extends Value {
 
 	@Override
 	public final Value changeValue(int v) {
-		return new DiscreteValue(this.attribute, v);
+		return new IntValue(this.attribute, v, this.hashTuple.getHashFactory());
 	}
 	
 	@Override
 	public final Value changeValue(double v) {
-		return new DiscreteValue(this.attribute, (int)v);
+		return new IntValue(this.attribute, (int)v, this.hashTuple.getHashFactory());
 	}
 	
 	@Override
 	public final Value changeValue(boolean v) {
-		return new DiscreteValue(this.attribute, v ? 1 : 0);
+		return new IntValue(this.attribute, v ? 1 : 0, this.hashTuple.getHashFactory());
 	}
 	
 	@Override
 	public final Value changeValue(String v) {
-		return new DiscreteValue(this.attribute, Integer.parseInt(v));
+		return new IntValue(this.attribute, Integer.parseInt(v), this.hashTuple.getHashFactory());
 	}
 	
 	@Deprecated

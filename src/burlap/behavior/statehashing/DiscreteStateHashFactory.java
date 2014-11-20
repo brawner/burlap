@@ -31,6 +31,7 @@ import burlap.oomdp.core.State;
 public class DiscreteStateHashFactory implements StateHashFactory {
 
 	protected Map<String, List<Attribute>>	attributesForHashCode;
+	private final ObjectHashFactory objectHashFactory = null;
 	
 	/**
 	 * Initializes this hashing factory to compute hash codes with all attributes of all object classes.
@@ -45,6 +46,10 @@ public class DiscreteStateHashFactory implements StateHashFactory {
 	 */
 	public DiscreteStateHashFactory(Map<String, List<Attribute>> attributesForHashCode){
 		this.attributesForHashCode = attributesForHashCode;
+	}
+	
+	public ObjectHashFactory getObjectHashFactory() {
+		return this.objectHashFactory;
 	}
 	
 	/**

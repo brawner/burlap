@@ -29,7 +29,7 @@ public abstract class SGStateGenerator {
 	 * @return an object instance for this agent.
 	 */
 	protected ObjectInstance getAgentObjectInstance(Agent a){
-		return new ObjectInstance(a.agentType.oclass, a.worldAgentName);
+		return new ObjectInstance(a.agentType.oclass, a.worldAgentName, null);
 	}
 
 }

@@ -135,7 +135,7 @@ public class GraphDefinedDomain implements DomainGenerator {
 	public static State getState(Domain d, int sNode){
 		State s = new State();
 		
-		ObjectInstance o = new ObjectInstance(d.getObjectClass(CLASSAGENT), CLASSAGENT);
+		ObjectInstance o = new ObjectInstance(d.getObjectClass(CLASSAGENT), CLASSAGENT, null);
 		o.setValue(ATTNODE, sNode);
 		
 		s.addObject(o);

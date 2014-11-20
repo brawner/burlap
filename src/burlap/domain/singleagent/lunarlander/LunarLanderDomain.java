@@ -658,14 +658,14 @@ public class LunarLanderDomain implements DomainGenerator {
 		
 		State s = new State();
 		
-		ObjectInstance agent = new ObjectInstance(domain.getObjectClass(AGENTCLASS), AGENTCLASS + "0");
+		ObjectInstance agent = new ObjectInstance(domain.getObjectClass(AGENTCLASS), AGENTCLASS + "0", null);
 		s.addObject(agent);
 		
-		ObjectInstance pad = new ObjectInstance(domain.getObjectClass(PADCLASS), PADCLASS + "0");
+		ObjectInstance pad = new ObjectInstance(domain.getObjectClass(PADCLASS), PADCLASS + "0", null);
 		s.addObject(pad);
 		
 		for(int i = 0; i < no; i++){
-			ObjectInstance obst = new ObjectInstance(domain.getObjectClass(OBSTACLECLASS), OBSTACLECLASS + i);
+			ObjectInstance obst = new ObjectInstance(domain.getObjectClass(OBSTACLECLASS), OBSTACLECLASS + i, null);
 			s.addObject(obst);
 		}
 

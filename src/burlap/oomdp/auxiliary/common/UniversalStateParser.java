@@ -70,7 +70,7 @@ public class UniversalStateParser implements StateParser {
 			String ocname = obinst[0];
 			String oname = obinst[1];
 			
-			ObjectInstance o = new ObjectInstance(domain.getObjectClass(ocname), oname);
+			ObjectInstance o = new ObjectInstance(domain.getObjectClass(ocname), oname, null);
 			
 			for(int j = 2; j < obinst.length; j+=2){
 				String attName = obinst[j];

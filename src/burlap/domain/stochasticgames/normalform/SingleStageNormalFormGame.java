@@ -471,7 +471,7 @@ public class SingleStageNormalFormGame implements DomainGenerator {
 		int n = pnAtt.discValues.size(); //determines the number of players
 		
 		for(int i = 0; i < n; i++){
-			ObjectInstance player = new ObjectInstance(pclass, CLASSPLAYER+i);
+			ObjectInstance player = new ObjectInstance(pclass, CLASSPLAYER+i, null);
 			player.setValue(ATTPN, i);
 			s.addObject(player);
 		}

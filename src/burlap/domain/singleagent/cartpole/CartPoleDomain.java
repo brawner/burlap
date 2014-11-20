@@ -283,7 +283,7 @@ public class CartPoleDomain implements DomainGenerator {
 	 * @return the corresponding initial state object
 	 */
 	public static State getInitialState(Domain domain, double x, double xv, double a, double av){
-		ObjectInstance cartPole = new ObjectInstance(domain.getObjectClass(CLASSCARTPOLE), CLASSCARTPOLE);
+		ObjectInstance cartPole = new ObjectInstance(domain.getObjectClass(CLASSCARTPOLE), CLASSCARTPOLE, null);
 		cartPole.setValue(ATTX, x);
 		cartPole.setValue(ATTV, xv);
 		cartPole.setValue(ATTANGLE, a);

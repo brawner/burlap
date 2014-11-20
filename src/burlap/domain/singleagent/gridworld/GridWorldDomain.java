@@ -522,7 +522,7 @@ public class GridWorldDomain implements DomainGenerator {
 		
 		State s = new State();
 
-		s.addObject(new ObjectInstance(d.getObjectClass(CLASSAGENT), CLASSAGENT+0));
+		s.addObject(new ObjectInstance(d.getObjectClass(CLASSAGENT), CLASSAGENT+0, null));
 				
 		return s;
 		
@@ -539,8 +539,8 @@ public class GridWorldDomain implements DomainGenerator {
 		
 		State s = new State();
 		
-		s.addObject(new ObjectInstance(d.getObjectClass(CLASSLOCATION), CLASSLOCATION+0));
-		s.addObject(new ObjectInstance(d.getObjectClass(CLASSAGENT), CLASSAGENT+0));
+		s.addObject(new ObjectInstance(d.getObjectClass(CLASSLOCATION), CLASSLOCATION+0, null));
+		s.addObject(new ObjectInstance(d.getObjectClass(CLASSAGENT), CLASSAGENT+0, null));
 		
 		
 		return s;
@@ -558,9 +558,9 @@ public class GridWorldDomain implements DomainGenerator {
 		State s = new State();
 		
 		for(int i = 0; i < n; i++){
-			s.addObject(new ObjectInstance(d.getObjectClass(CLASSLOCATION), CLASSLOCATION+i));
+			s.addObject(new ObjectInstance(d.getObjectClass(CLASSLOCATION), CLASSLOCATION+i,null));
 		}
-		s.addObject(new ObjectInstance(d.getObjectClass(CLASSAGENT), CLASSAGENT+0));
+		s.addObject(new ObjectInstance(d.getObjectClass(CLASSAGENT), CLASSAGENT+0, null));
 		
 		return s;
 	}

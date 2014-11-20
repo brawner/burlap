@@ -102,7 +102,7 @@ public class StateYAMLParser implements StateParser {
 			Map<?,?> oMap = (Map<?, ?>)o;
 			String obName = (String)oMap.get("name");
 			String className = (String)oMap.get("class");
-			ObjectInstance ob = new ObjectInstance(this.domain.getObjectClass(className), obName);
+			ObjectInstance ob = new ObjectInstance(this.domain.getObjectClass(className), obName, null);
 			for(Attribute a : this.domain.getObjectClass(className).attributeList){
 				if(a.type == AttributeType.BOOLEAN){
 					Boolean bval = (Boolean)oMap.get(a.name);

@@ -36,7 +36,7 @@ public class MountainCarStateParser implements StateParser {
 		double v = Double.parseDouble(comps[1]);
 		
 		State s = new State();
-		ObjectInstance agent = new ObjectInstance(this.domain.getObjectClass(MountainCar.CLASSAGENT), MountainCar.CLASSAGENT);
+		ObjectInstance agent = new ObjectInstance(this.domain.getObjectClass(MountainCar.CLASSAGENT), MountainCar.CLASSAGENT, null);
 		agent.setValue(MountainCar.ATTX, x);
 		agent.setValue(MountainCar.ATTV, v);
 		s.addObject(agent);

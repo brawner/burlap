@@ -255,7 +255,7 @@ public class SGQWActionHistory extends SGNaiveQLAgent {
 		
 		String aname = gsa.actingAgent;
 		
-		ObjectInstance o = new ObjectInstance(classHistory, aname + "-h" + h);
+		ObjectInstance o = new ObjectInstance(classHistory, aname + "-h" + h, null);
 		o.setValue(ATTHNUM, h);
 		o.setValue(ATTHPN, world.getPlayerNumberForAgent(aname));
 		o.setValue(ATTHAID, actionMap.getActionId(gsa));
@@ -274,7 +274,7 @@ public class SGQWActionHistory extends SGNaiveQLAgent {
 	 */
 	protected ObjectInstance getHistoryLessObjectInstanceForAgent(String aname, int h){
 		
-		ObjectInstance o = new ObjectInstance(classHistory, aname + "-h" + h);
+		ObjectInstance o = new ObjectInstance(classHistory, aname + "-h" + h, null);
 		o.setValue(ATTHNUM, h);
 		o.setValue(ATTHPN, world.getPlayerNumberForAgent(aname));
 		o.setValue(ATTHAID, actionMap.maxValue());

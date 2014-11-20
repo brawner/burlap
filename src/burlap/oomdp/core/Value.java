@@ -3,6 +3,9 @@ package burlap.oomdp.core;
 import java.util.Collection;
 import java.util.Set;
 
+import burlap.behavior.statehashing.ValueHashFactory;
+import burlap.behavior.statehashing.ValueHashTuple;
+
 
 /**
  * An abstract class for representing a value assignment for an attribute. Different value subclasses will use different internal
@@ -15,13 +18,13 @@ public abstract class Value {
 
 	protected final Attribute			attribute;			//defines the attribute kind of this value
 	protected boolean			isObservable=true;	//relevant to POMDPs for which values are only observable at certain times
-	
+	protected ValueHashTuple hashTuple;
 	
 	/**
 	 * Initializes this value to be an assignment for Attribute attribute.
 	 * @param attribute
 	 */
-	public Value(Attribute attribute){
+	public Value(Attribute attribute, ValueHashFactory hashingFactory){
 		this.attribute = attribute;
 	}
 	
@@ -31,6 +34,19 @@ public abstract class Value {
 	 */
 	public Value(Value v){
 		this.attribute = v.attribute;
+		this.hashTuple = v.hashTuple;
+		
+	}
+	
+	protected void computeHash(ValueHashFactory hashingFactory) {
+		this.hashTuple = hashingFactory.hashValue(this);
+	}
+	
+	public abstract boolean isSet();
+	
+	@Override
+	public int hashCode() {
+		return this.hashTuple.hashCode();
 	}
 	
 	/**
