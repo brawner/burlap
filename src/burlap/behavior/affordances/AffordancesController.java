@@ -128,7 +128,7 @@ public class AffordancesController {
 				List<GroundedAction> groundedActions = action.getAllApplicableGroundedActions(state);
 				for (GroundedAction groundedAction : groundedActions) {
 					if (groundedAction.action.getName().equals("pour") && groundedAction.params[1].equals("flour_bowl")) {
-						System.out.print("");
+						//System.out.print("");
 					}
 					if (pf.isTrue(state, groundedAction.params)) {
 						result.add(groundedAction);

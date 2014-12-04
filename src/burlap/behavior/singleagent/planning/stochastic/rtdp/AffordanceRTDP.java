@@ -98,6 +98,8 @@ public class AffordanceRTDP extends RTDP {
 				// Update this state's value
 				double curV = this.value(sh);
 				double nV = this.performAffordanceBellmanUpdateOn(sh, affController);
+				//System.out.println(nV);
+				
 				numBellmanUpdates++;
 				delta = Math.max(Math.abs(nV - curV), delta); 
 

@@ -81,9 +81,10 @@ public final class State {
 	
 	public State(List<ObjectInstance> objects, List<ObjectInstance> hiddenObjects) {
 		int initialCapacity = (int)((double)(objects.size() + hiddenObjects.size()) / 0.75 + 1);
-		Set<String> objectNames = new HashSet<String>(initialCapacity);
-		List<ObjectInstance> objectInstances = this.createObjectLists(objects, objectNames);
-		List<ObjectInstance> hiddenObjectsInstances = this.createObjectLists(hiddenObjects, objectNames);
+		Map<String, Integer> objectMap = new HashMap<String, Integer>(initialCapacity);
+		
+		List<ObjectInstance> objectInstances = this.createObjectLists(objects, objectMap, 0);
+		List<ObjectInstance> hiddenObjectsInstances = this.createObjectLists(hiddenObjects, objectMap, objectInstances.size());
 		this.objectInstances = Collections.unmodifiableList(objectInstances);
 		this.hiddenObjectInstances = Collections.unmodifiableList(hiddenObjectsInstances);
 		
@@ -91,7 +92,20 @@ public final class State {
 				this.buildObjectIndexByTrueClass(objectInstances, hiddenObjectInstances);
 		this.objectIndexByTrueClass = Collections.unmodifiableMap(objectIndexByTrueClass);
 		
-		Map<String, Integer> objectMap = this.buildObjectMap(objectInstances, hiddenObjectInstances);
+		this.objectMap = Collections.unmodifiableMap(objectMap);
+	}
+	
+	public State(List<ObjectInstance> objects, List<ObjectInstance> hiddenObjects, Map<String, Integer> objectMap) {
+		objectMap.clear();
+		List<ObjectInstance> objectInstances = this.createObjectLists(objects, objectMap, 0);
+		List<ObjectInstance> hiddenObjectsInstances = this.createObjectLists(hiddenObjects, objectMap, objectInstances.size());
+		this.objectInstances = Collections.unmodifiableList(objectInstances);
+		this.hiddenObjectInstances = Collections.unmodifiableList(hiddenObjectsInstances);
+		
+		Map<String, List<Integer>> objectIndexByTrueClass = 
+				this.buildObjectIndexByTrueClass(objectInstances, hiddenObjectInstances);
+		this.objectIndexByTrueClass = Collections.unmodifiableMap(objectIndexByTrueClass);
+		
 		this.objectMap = Collections.unmodifiableMap(objectMap);
 	}
 	
@@ -104,9 +118,29 @@ public final class State {
 	}
 	
 	private final List<ObjectInstance> createObjectLists(List<ObjectInstance> objectList, Set<String> objectNames) {
+		if (objectNames == null) {
+			return objectList;
+		}
 		List<ObjectInstance> objectInstances = new ArrayList<ObjectInstance>(objectList.size());
 		for (ObjectInstance object : objectList) {
+			
 			if (objectNames.add(object.getName())) {
+				objectInstances.add(object);
+			}
+		}
+		return objectInstances;
+	}
+	
+	private final List<ObjectInstance> createObjectLists(List<ObjectInstance> objectList, Map<String, Integer> objectMap, int offset) {
+		List<ObjectInstance> objectInstances = new ArrayList<ObjectInstance>(objectList.size());
+		for (ObjectInstance object : objectList) {
+			if (object == null) {
+				continue;
+			}
+			Integer displaced = objectMap.put(object.getName(), objectInstances.size() + offset);
+			if (displaced != null) {
+				objectMap.put(object.getName(), displaced);
+			} else {
 				objectInstances.add(object);
 			}
 		}
@@ -125,6 +159,9 @@ public final class State {
 		return immutableListObjectsMap;
 	}
 
+	public Map<String, Integer> getObjectMap() {
+		return this.objectMap;
+	}
 
 	private void addObjectListToMap(List<ObjectInstance> objects,
 			Map<String, List<Integer>> objectIndexByTrueClass) {

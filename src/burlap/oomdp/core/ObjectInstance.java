@@ -549,6 +549,12 @@ public final class ObjectInstance {
 	
 	
 	public boolean equals(Object obj){
+		if (this == obj) {
+			return true;
+		}
+		if (!(obj instanceof ObjectInstance)) {
+			return false;
+		}
 		ObjectInstance op = (ObjectInstance)obj;
 		if (!op.name.equals(name)) {
 			return false; 
