@@ -17,7 +17,7 @@ public abstract class Domain {
 	
 	
 	protected final List <ObjectClass>					objectClasses;			//list of object classes
-	protected final Map <String, ObjectClass>			objectClassMap;			//look up object classes by name
+	protected final Map <String, Integer>				objectClassMap;			//look up object classes by name
 	
 	protected final List <Attribute>					attributes;				//list of attributes
 	protected final Map <String, Attribute>				attributeMap;			//lookup attributes by name
@@ -36,7 +36,7 @@ public abstract class Domain {
 	public Domain(){
 		
 		objectClasses = new ArrayList <ObjectClass>();
-		objectClassMap = new HashMap <String, ObjectClass>();
+		objectClassMap = new HashMap <String, Integer>();
 		
 		attributes = new ArrayList <Attribute>();
 		attributeMap = new HashMap <String, Attribute>();
@@ -48,7 +48,7 @@ public abstract class Domain {
 	
 	public Domain(Domain domain) {
 		objectClasses = new ArrayList <ObjectClass>(domain.objectClasses);
-		objectClassMap = new HashMap <String, ObjectClass>(domain.objectClassMap);
+		objectClassMap = new HashMap <String, Integer>(domain.objectClassMap);
 		
 		attributes = new ArrayList <Attribute>(domain.attributes);
 		attributeMap = new HashMap <String, Attribute>(domain.attributeMap);
@@ -61,7 +61,7 @@ public abstract class Domain {
 	
 	public Domain(Domain domain, List<PropositionalFunction> propFunctions) {
 		this.objectClasses = new ArrayList <ObjectClass>(domain.objectClasses);
-		this.objectClassMap = new HashMap <String, ObjectClass>(domain.objectClassMap);
+		this.objectClassMap = new HashMap <String, Integer>(domain.objectClassMap);
 		
 		this.attributes = new ArrayList <Attribute>(domain.attributes);
 		this.attributeMap = new HashMap <String, Attribute>(domain.attributeMap);
@@ -136,10 +136,17 @@ public abstract class Domain {
 	 * @param oc the object class to add to this domain.
 	 */
 	public void addObjectClass(ObjectClass oc){
+		int position = objectClasses.size();
+		Integer displaced = objectClassMap.put(oc.name, position);
+		if (displaced != null) {
+			objectClassMap.put(oc.name, displaced);
+		} else {
+			objectClasses.add(oc);
+		}/*
 		if(!objectClassMap.containsKey(oc.name)){
 			objectClasses.add(oc);
 			objectClassMap.put(oc.name, oc);
-		}
+		}*/
 	}
 	
 	
@@ -209,9 +216,13 @@ public abstract class Domain {
 	 * @return the object class with the given name or null if it is not present.
 	 */
 	public ObjectClass getObjectClass(String name){
-		return objectClassMap.get(name);
+		Integer position = objectClassMap.get(name);
+		return (position == null) ? null : this.objectClasses.get(position);
 	}
 	
+	public Integer getObjectClassPosition(String name) {
+		return this.objectClassMap.get(name);
+	}
 	
 	/**
 	 * Returns a list of the attributes that define this domain. Modifying the returned list
