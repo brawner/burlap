@@ -133,7 +133,7 @@ public class BlockDude implements DomainGenerator {
 			int x = platformX.get(i);
 			int h = platformH.get(i);
 			
-			ObjectInstance plat = new ObjectInstance(domain.getObjectClass(CLASSPLATFORM), CLASSPLATFORM+x);
+			ObjectInstance plat = new ObjectInstance(domain.getObjectClass(CLASSPLATFORM), CLASSPLATFORM+x, null);
 			plat = plat.changeValue(ATTX, x);
 			plat = plat.changeValue(ATTHEIGHT, h);
 			
@@ -143,14 +143,14 @@ public class BlockDude implements DomainGenerator {
 		
 		//create n blocks
 		for(int i = 0; i < nb; i++){
-			objects.add(new ObjectInstance(domain.getObjectClass(CLASSBLOCK), CLASSBLOCK+i));
+			objects.add(new ObjectInstance(domain.getObjectClass(CLASSBLOCK), CLASSBLOCK+i, null));
 		}
 		
 		//create exit
-		objects.add(new ObjectInstance(domain.getObjectClass(CLASSEXIT), CLASSEXIT+0));
+		objects.add(new ObjectInstance(domain.getObjectClass(CLASSEXIT), CLASSEXIT+0, null));
 		
 		//create agent
-		objects.add(new ObjectInstance(domain.getObjectClass(CLASSAGENT), CLASSAGENT+0));
+		objects.add(new ObjectInstance(domain.getObjectClass(CLASSAGENT), CLASSAGENT+0, null));
 		
 		
 		return new State(objects);
