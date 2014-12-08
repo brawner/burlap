@@ -26,6 +26,7 @@ public abstract class Value {
 	 */
 	public Value(Attribute attribute, ValueHashFactory hashingFactory){
 		this.attribute = attribute;
+		this.hashTuple = null;
 	}
 	
 	/**
@@ -47,6 +48,10 @@ public abstract class Value {
 	@Override
 	public int hashCode() {
 		return this.hashTuple.hashCode();
+	}
+	
+	public ValueHashTuple getHashTuple() {
+		return this.hashTuple;
 	}
 	
 	/**

@@ -470,11 +470,7 @@ public final class ObjectInstance {
 	 * @return the list of value object assignments to all of this object instance's attributes.
 	 */
 	public List <Value> getValues(){
-		List<Value> newValues = new ArrayList<Value>(this.values.size());
-		for (Value v : this.values){
-			newValues.add(v.copy());
-		}
-		return newValues;
+		return this.values;
 	}
 	
 	
