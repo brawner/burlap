@@ -9,21 +9,31 @@ import java.util.Map;
 public class StateBuilder {
 	private final List<ObjectInstance> objectInstances;
 	private final List<ObjectInstance> hiddenObjects;
-	private final Map<String, Integer> objectMap;
+	private Map<String, Integer> objectMap;
 	private final Map<String, Integer> objectClassMap;
+	private boolean modifyObjectMap;
 	
 	public StateBuilder() {
 		this.objectInstances = new ArrayList<ObjectInstance>();
 		this.hiddenObjects = new ArrayList<ObjectInstance>();
 		this.objectMap = new HashMap<String, Integer>();
 		this.objectClassMap = new HashMap<String, Integer>();
+		this.modifyObjectMap = true;
 	}
 	
 	public StateBuilder(State state) {
 		this.objectInstances = new ArrayList<ObjectInstance>(state.getObservableObjects());
 		this.hiddenObjects = new ArrayList<ObjectInstance>(state.getHiddenObjects());
-		this.objectMap = new HashMap<String, Integer>(state.getObjectMap());
+		this.objectMap = state.getObjectMap();
 		this.objectClassMap = state.getObjectClassMap();
+		this.modifyObjectMap = false;
+	}
+	
+	private void initObjectMap() {
+		if (!this.modifyObjectMap) {
+			this.objectMap = new HashMap<String, Integer>(this.objectMap);
+			this.modifyObjectMap = true;
+		}
 	}
 	
 	public void add(ObjectInstance object) {
@@ -34,6 +44,7 @@ public class StateBuilder {
 			this.objectInstances.add(object);
 			this.updatePositions(position);
 		} else {
+			this.initObjectMap();
 			this.objectMap.put(object.getName(), displaced);
 		}	
 	}
@@ -46,6 +57,7 @@ public class StateBuilder {
 	
 	private void updatePositions(int startPosition) {
 		if (startPosition < this.objectInstances.size()) {
+			this.initObjectMap();
 			for (int i = startPosition; i < this.objectInstances.size(); i++) {
 				String name = this.objectInstances.get(i).getName();
 				this.objectMap.put(name, i);
@@ -53,6 +65,7 @@ public class StateBuilder {
 		}
 		
 		if (!this.hiddenObjects.isEmpty()) {
+			this.initObjectMap();
 			startPosition -= this.objectInstances.size();
 			startPosition = Math.max(0, startPosition);
 			int numObservedObjects = this.objectInstances.size();
@@ -65,6 +78,7 @@ public class StateBuilder {
 	
 	public void addHidden(ObjectInstance object) {
 		int position = this.hiddenObjects.size() + this.objectInstances.size();
+		this.initObjectMap();
 		Integer displaced = this.objectMap.put(object.getName(), position);
 		if ( displaced == null) {
 			this.objectInstances.add(object);
@@ -94,7 +108,7 @@ public class StateBuilder {
 			}
 		}
 		
-		if (added != null && !added.equals(removed)) {
+		if (added != null && !added.getName().equals(removed.getName())) {
 			this.objectMap.put(added.getName(), adjustedPosition);
 			if (removed != null) {
 				this.objectMap.remove(removed.getName());
@@ -128,6 +142,7 @@ public class StateBuilder {
 			removed = this.hiddenObjects.remove(position);
 		}
 		if (removed != null) {
+			this.initObjectMap();
 			this.objectMap.remove(removed.getName());
 		}
 		
@@ -169,10 +184,11 @@ public class StateBuilder {
 	}
 	
 	private final List<List<Integer>> buildObjectIndexByTrueClass(List<ObjectInstance> objects, List<ObjectInstance> hiddenObjects, Map<String, Integer> objectClassMap) {
+		int size = objects.size() + hiddenObjects.size();
 		int initialSize = objectClassMap.size();
 		List<List<Integer>> objectIndexByTrueClass = new ArrayList<List<Integer>>(initialSize);
 		for (int i = 0; i < initialSize; i++) {
-			objectIndexByTrueClass.add(new ArrayList<Integer>(objects.size()));
+			objectIndexByTrueClass.add(new ArrayList<Integer>(size));
 		}
 
 		boolean madeModifiable = this.addObjectListToList(objects, objectIndexByTrueClass, objectClassMap, false);
@@ -199,8 +215,7 @@ public class StateBuilder {
 				objectClassMap.put(objectClassName, position );
 				objectIndexByTrueClass.add(new ArrayList<Integer>(objects.size()));
 			}
-			List<Integer> objectsOfClass = 
-					objectIndexByTrueClass.get(position);
+			List<Integer> objectsOfClass = objectIndexByTrueClass.get(position);
 			objectsOfClass.add(i);
 		}
 		return madeModifiable;

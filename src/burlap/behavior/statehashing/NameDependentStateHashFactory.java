@@ -1,5 +1,6 @@
 package burlap.behavior.statehashing;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -27,8 +28,12 @@ public class NameDependentStateHashFactory implements StateHashFactory {
 	//protected Set <String>				objectNames;
 	private final Map<String, Integer>  objectNameOrderLookup;
 	private final NameDependentObjectHashFactory hashingFactory = new NameDependentObjectHashFactory();
+	private List<Integer> hashes;
+	private List<State> hashedStates;
 	public NameDependentStateHashFactory(){
 		this.objectNameOrderLookup = new HashMap<String, Integer>();
+		hashes = new ArrayList<Integer>();
+		hashedStates = new ArrayList<State>();
 	}
 	
 	public NameDependentStateHashFactory(NameDependentStateHashFactory other){
@@ -55,6 +60,27 @@ public class NameDependentStateHashFactory implements StateHashFactory {
 	@Override
 	public StateHashTuple hashState(State s) {
 		return new NameDependentStateHashTuple(s);
+	}
+	
+	public void calculateCollisions() {
+		Map<Integer, State> hashMap = new HashMap<Integer, State>();
+		int collisions = 0;
+		for (int i = 0; i < hashes.size(); i++) {
+			Integer hash = hashes.get(i);
+			State state = hashedStates.get(i);
+			State displaced = hashMap.put(hash, state);
+			if (!state.equals(displaced)) {
+				collisions++;
+			}
+		}
+		System.out.println("Collisions, " + collisions + ", " + hashMap.size());
+	}
+	
+	public void printHashes() {
+		for (Integer i : hashes){ 
+			System.out.print(i);
+			System.out.print(", ");
+		}
 	}
 	
 	public class NameDependentStateHashTuple extends StateHashTuple{
@@ -98,6 +124,11 @@ public class NameDependentStateHashFactory implements StateHashFactory {
 					//buf = object.buildObjectDescription(buf);
 				}
 			}*/
+			System.out.print(code + ", ");
+			//NameDependentStateHashFactory.this.hashes.add(code);
+			//NameDependentStateHashFactory.this.hashedStates.add(state);
+			
+			
 			return code;
 			
 			/*for(String objectName : orderedObjects){

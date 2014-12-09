@@ -1148,10 +1148,7 @@ public final class State {
 			List<Integer> remainingObjects, List<String> uniqueOrderGroups,
 			String[] paramClasses, String[] paramOrderGroups, List<Integer> cb) {
 		
-		List <List<Integer>> nextBinding = new ArrayList<List<Integer>>(currentBindingSets.size());
-		for(List <Integer> prevBind : currentBindingSets){
-			nextBinding.add(prevBind);
-		}
+		List <List<Integer>> nextBinding = new ArrayList<List<Integer>>(currentBindingSets);
 		nextBinding.add(cb);
 		List <Integer> nextObsReamining = this.objectListDifference(remainingObjects, cb);
 		
