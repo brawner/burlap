@@ -25,10 +25,9 @@ public class StringValue extends Value {
 	 * Initializes for a given attribute. The default value will be set to 0.
 	 * @param attribute
 	 */
-	public StringValue(Attribute attribute, ValueHashFactory hashingFactory) {
-		super(attribute, hashingFactory);
+	public StringValue(Attribute attribute) {
+		super(attribute);
 		this.stringVal = "";
-		this.computeHash(hashingFactory);
 	}
 	
 	
@@ -41,10 +40,9 @@ public class StringValue extends Value {
 		this.stringVal = ((StringValue)v).stringVal;
 	}
 	
-	public StringValue(Attribute attribute, String v, ValueHashFactory hashingFactory) {
-		super(attribute, hashingFactory);
+	public StringValue(Attribute attribute, String v) {
+		super(attribute);
 		this.stringVal = v;
-		this.computeHash(hashingFactory);
 	}
 	
 	@Override
@@ -59,17 +57,17 @@ public class StringValue extends Value {
 
 	@Override
 	public Value changeValue(int v) {
-		return new StringValue(this.attribute, Integer.toString(v), this.hashTuple.getHashFactory());
+		return new StringValue(this.attribute, Integer.toString(v));
 	}
 	
 	@Override
 	public Value changeValue(double v) {
-		return new StringValue(this.attribute, Double.toString(v), this.hashTuple.getHashFactory());
+		return new StringValue(this.attribute, Double.toString(v));
 	}
 	
 	@Override
 	public Value changeValue(String v) {
-		return new StringValue(this.attribute, v, this.hashTuple.getHashFactory());
+		return new StringValue(this.attribute, v);
 	}
 	
 	@Deprecated

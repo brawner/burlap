@@ -11,6 +11,9 @@ public class NameDependentObjectHashFactory extends ObjectHashFactory {
 	public ObjectHashTuple hashObject(ObjectInstance object) {
 		int code = object.getName().hashCode();
 		for (Value value : object.getValues()) {
+			if (value.hashTuple == null) {
+				this.getValueHashFactory().hashValue(value);
+			}
 			code += value.hashCode();
 		}
 		return NameDependentObjectHashTuple.makeTuple(object, this, code);
@@ -20,6 +23,7 @@ public class NameDependentObjectHashFactory extends ObjectHashFactory {
 		
 		private NameDependentObjectHashTuple(ObjectInstance object, NameDependentObjectHashFactory hashingFactory, int hashCode) {
 			super(object, hashingFactory, hashCode);
+			object.hashTuple = this;
 		}
 		
 		public static NameDependentObjectHashTuple makeTuple(ObjectInstance object, NameDependentObjectHashFactory hashingFactory, int hashCode) {

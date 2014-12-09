@@ -124,21 +124,26 @@ public class DiscreteStateHashFactory implements StateHashFactory {
 		@Override
 		public int computeHashCode(){
 			
-			List <String> objectClasses = this.getOrderedClasses();
+			List <List<ObjectInstance>> objectsByClass = this.getState().getAllObjectsSortedByTrueClass();
 			int totalVol = 1;
 			int hashCode = 0;
-			for(String oclass : objectClasses){
-				List <ObjectInstance> obs = getState().getObjectsOfTrueClass(oclass);
-				ObjectClass oc = obs.get(0).getObjectClass();
+			for (List<ObjectInstance> objects : objectsByClass) {
+				
+				ObjectClass oc = objects.get(0).getObjectClass();
 				int vol = this.computeVolumeForClass(oc);
 				
 				//too ensure object order invariance, the hash values must first be sorted by their object-wise hashcode
-				int [] obHashCodes = new int[obs.size()];
-				for(int i = 0; i < obs.size(); i++){
-					obHashCodes[i] = DiscreteStateHashFactory.this.objectHashFactory.hashObject(obs.get(i)).hashCode();
+				int objectSizes = objects.size();
+				int [] obHashCodes = new int[objectSizes];
+				for (int i = 0, end = objectSizes; i < end; i++) {
+					ObjectInstance object = objects.get(i);
 					
-					//obHashCodes[i] = this.getIndexValue(obs.get(i), oc);
+					if (object.hashTuple == null) {
+						object.hashTuple = DiscreteStateHashFactory.this.objectHashFactory.hashObject(object);
+					}
+					obHashCodes[i] = object.hashTuple.hashCode();
 				}
+				
 				Arrays.sort(obHashCodes);
 				
 				//multiply in reverse (for smaller total hash codes)
@@ -222,7 +227,7 @@ public class DiscreteStateHashFactory implements StateHashFactory {
 		}
 		
 		private List <String> getOrderedClasses(){
-			List <String> objectClasses = new ArrayList<String>(getState().getObjectClassesPresent());
+			List <String> objectClasses = this.getState().getObjectClassesPresent();
 			Collections.sort(objectClasses);
 			return objectClasses;
 		}

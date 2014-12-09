@@ -22,7 +22,7 @@ public class DiscreteObjectHashFactory extends ObjectHashFactory {
 	}
 	@Override
 	public ObjectHashTuple hashObject(ObjectInstance object) {
-		ObjectHashTuple hashTuple = object.getHashTuple();
+		ObjectHashTuple hashTuple = object.hashTuple;
 		if (hashTuple != null) {
 			return hashTuple;
 		}
@@ -30,7 +30,10 @@ public class DiscreteObjectHashFactory extends ObjectHashFactory {
 		int index = 0;
 		int vol = 1;
 		for (Value value : object.getValues()) {
-			index += DiscreteObjectHashFactory.valueHashingFactory.hashValue(value, vol).hashCode();
+			if (value.hashTuple == null) {
+				value.hashTuple = DiscreteObjectHashFactory.valueHashingFactory.hashValue(value, vol);
+			}
+			index += value.hashTuple.hashCode();
 			
 			Attribute att = value.getAttribute();
 			if(att.type==AttributeType.DISC || att.type == AttributeType.BOOLEAN){

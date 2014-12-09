@@ -77,6 +77,9 @@ public class GridWorldDomain implements DomainGenerator {
 	 */
 	public static final String							CLASSLOCATION = "location";
 	
+	public static final String							AGENTNAME = CLASSAGENT + 0;
+	
+	public static final String							LOCATIONNAME = CLASSLOCATION + 0;
 	
 	/**
 	 * Constant for the name of the north action
@@ -524,7 +527,7 @@ public class GridWorldDomain implements DomainGenerator {
 	public static State getOneAgentNoLocationState(Domain d){
 		
 		State s = new State();
-		return s.appendObject(new ObjectInstance(d.getObjectClass(CLASSAGENT), CLASSAGENT+0, hashingFactory.getObjectHashFactory()));
+		return s.appendObject(new ObjectInstance(d.getObjectClass(CLASSAGENT), CLASSAGENT+0));
 		
 	}
 	
@@ -539,8 +542,8 @@ public class GridWorldDomain implements DomainGenerator {
 		
 		State s = new State();
 		
-		s = s.appendObject(new ObjectInstance(d.getObjectClass(CLASSLOCATION), CLASSLOCATION+0, hashingFactory.getObjectHashFactory()));
-		s = s.appendObject(new ObjectInstance(d.getObjectClass(CLASSAGENT), CLASSAGENT+0, hashingFactory.getObjectHashFactory()));
+		s = s.appendObject(new ObjectInstance(d.getObjectClass(CLASSLOCATION), LOCATIONNAME));
+		s = s.appendObject(new ObjectInstance(d.getObjectClass(CLASSAGENT), AGENTNAME));
 		
 		
 		return s;
@@ -629,7 +632,8 @@ public class GridWorldDomain implements DomainGenerator {
 	 */
 	protected State move(State s, int xd, int yd){
 		
-		ObjectInstance agent = s.getObjectsOfTrueClass(CLASSAGENT).get(0);
+		
+		ObjectInstance agent = s.getObject(AGENTNAME);
 		int ax = agent.getDiscValForAttribute(ATTX);
 		int ay = agent.getDiscValForAttribute(ATTY);
 		
@@ -756,17 +760,11 @@ public class GridWorldDomain implements DomainGenerator {
 				if(isNew){
 					TransitionProbability tp = new TransitionProbability(ns, p);
 					transitions.add(tp);
-				}
-			
-				
+				}	
 			}
-			
 			
 			return transitions;
 		}
-		
-		
-		
 	}
 	
 	
@@ -807,8 +805,6 @@ public class GridWorldDomain implements DomainGenerator {
 			
 			return false;
 		}
-		
-
 	}
 	
 	

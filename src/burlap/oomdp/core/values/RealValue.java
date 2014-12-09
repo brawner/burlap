@@ -25,10 +25,9 @@ public class RealValue extends Value {
 	 * Initializes this value to be an assignment for Attribute attribute.
 	 * @param attribute
 	 */
-	public RealValue(Attribute attribute, ValueHashFactory hashingFactory){
-		super(attribute, hashingFactory);
+	public RealValue(Attribute attribute){
+		super(attribute);
 		this.realVal = Double.NaN;
-		this.computeHash(hashingFactory);
 	}
 	
 	
@@ -42,10 +41,9 @@ public class RealValue extends Value {
 		this.realVal = rv.realVal;
 	}
 	
-	public RealValue(Attribute attribute, double realVal, ValueHashFactory hashingFactory) {
-		super(attribute, hashingFactory);
+	public RealValue(Attribute attribute, double realVal) {
+		super(attribute);
 		this.realVal = realVal;
-		this.computeHash(hashingFactory);
 	}
 
 	@Override
@@ -61,17 +59,17 @@ public class RealValue extends Value {
 	
 	@Override
 	public Value changeValue(int v) {
-		return new RealValue(this.attribute, (double)v, this.hashTuple.getHashFactory());
+		return new RealValue(this.attribute, (double)v);
 	}
 	
 	@Override
 	public Value changeValue(double v) {
-		return new RealValue(this.attribute, v, this.hashTuple.getHashFactory());
+		return new RealValue(this.attribute, v);
 	}
 	
 	@Override
 	public Value changeValue(String v) {
-		return new RealValue(this.attribute, Double.parseDouble(v), this.hashTuple.getHashFactory());
+		return new RealValue(this.attribute, Double.parseDouble(v));
 	}
 	
 	@Override

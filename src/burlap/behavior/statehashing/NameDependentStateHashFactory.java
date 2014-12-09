@@ -71,6 +71,9 @@ public class NameDependentStateHashFactory implements StateHashFactory {
 			List<ObjectInstance> objects = state.getObservableObjects();
 			int code = 0;
 			for (ObjectInstance object : objects) {
+				if (object.hashTuple == null) {
+					NameDependentStateHashFactory.this.getObjectHashFactory().hashObject(object);
+				}
 				code += object.hashCode();
 				
 				/*

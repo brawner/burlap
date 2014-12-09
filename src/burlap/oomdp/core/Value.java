@@ -18,13 +18,13 @@ public abstract class Value {
 
 	protected final Attribute			attribute;			//defines the attribute kind of this value
 	protected boolean			isObservable=true;	//relevant to POMDPs for which values are only observable at certain times
-	protected ValueHashTuple hashTuple;
+	public ValueHashTuple hashTuple;
 	
 	/**
 	 * Initializes this value to be an assignment for Attribute attribute.
 	 * @param attribute
 	 */
-	public Value(Attribute attribute, ValueHashFactory hashingFactory){
+	public Value(Attribute attribute){
 		this.attribute = attribute;
 		this.hashTuple = null;
 	}

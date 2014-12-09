@@ -13,6 +13,7 @@ public class NameDependentValueHashFactory extends ValueHashFactory {
 	public static class NameDependentValueHashTuple extends ValueHashTuple {
 		public NameDependentValueHashTuple(Value value, NameDependentValueHashFactory hashingFactory, int code) {
 			super(value, hashingFactory, code);
+			value.hashTuple = this;
 		}
 		
 		public static NameDependentValueHashTuple makeTuple(Value value, NameDependentValueHashFactory hashingFactory, int code) {

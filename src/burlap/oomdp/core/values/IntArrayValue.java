@@ -21,10 +21,9 @@ public class IntArrayValue extends Value {
 	private final int [] intArray;
 	
 	
-	public IntArrayValue(Attribute attribute, ValueHashFactory hashingFactory) {
-		super(attribute, hashingFactory);
+	public IntArrayValue(Attribute attribute) {
+		super(attribute);
 		this.intArray = null;
-		this.computeHash(hashingFactory);
 	}
 	
 	public IntArrayValue(Value v){
@@ -33,10 +32,9 @@ public class IntArrayValue extends Value {
 		this.intArray = (iaValue == null) ? null : iaValue.intArray.clone();		
 	}
 	
-	public IntArrayValue(Attribute attribute, int[] intArray, ValueHashFactory hashingFactory) {
- 		super(attribute, hashingFactory);
+	public IntArrayValue(Attribute attribute, int[] intArray) {
+ 		super(attribute);
  		this.intArray = (intArray == null) ? null : intArray.clone();
- 		this.computeHash(hashingFactory);
  	}
 	
 	@Override
@@ -60,12 +58,12 @@ public class IntArrayValue extends Value {
 		for(int i = 0; i < comps.length; i++){
 			intArray[i] = Integer.parseInt(comps[i]);
 		}
-		return new IntArrayValue(this.attribute, intArray, this.hashTuple.getHashFactory());
+		return new IntArrayValue(this.attribute, intArray);
 	}
 	
 	@Override
 	public Value changeValue(int[] intArray) {
-		return new IntArrayValue(this.attribute, intArray, this.hashTuple.getHashFactory());
+		return new IntArrayValue(this.attribute, intArray);
 	}
 	
 	@Override
@@ -74,7 +72,7 @@ public class IntArrayValue extends Value {
 		for(int i = 0; i < doubleArray.length; i++){
 			intArray[i] = (int)doubleArray[i];
 		}
-		return new IntArrayValue(this.attribute, intArray, this.hashTuple.getHashFactory());
+		return new IntArrayValue(this.attribute, intArray);
 	}
 	
 	

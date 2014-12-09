@@ -30,11 +30,10 @@ public class MultiTargetRelationalValue extends Value {
 	 * Initializes the value to be associted with the given attribute
 	 * @param attribute the attribute with which this value is associated
 	 */
-	public MultiTargetRelationalValue(Attribute attribute, ValueHashFactory hashingFactory){
-		super(attribute, hashingFactory);
+	public MultiTargetRelationalValue(Attribute attribute){
+		super(attribute);
 		Set<String> targets = new TreeSet<String>();
 		this.targetObjects = Collections.unmodifiableSet(targets);
-		this.computeHash(hashingFactory);
 	}
 	
 	
@@ -49,11 +48,10 @@ public class MultiTargetRelationalValue extends Value {
 		this.targetObjects = Collections.unmodifiableSet(targets);
 	}
 	
-	public MultiTargetRelationalValue(Attribute attribute, Set<String> targetObjects, ValueHashFactory hashingFactory) {
-		super(attribute, hashingFactory);
+	public MultiTargetRelationalValue(Attribute attribute, Set<String> targetObjects) {
+		super(attribute);
 		Set<String> targets = new TreeSet<String>(targetObjects);
 		this.targetObjects = Collections.unmodifiableSet(targets);
-		this.computeHash(hashingFactory);
 	}
 	
 	@Override
@@ -70,30 +68,30 @@ public class MultiTargetRelationalValue extends Value {
 	public Value changeValue(String v) {
 		Set<String> targetObjects = new TreeSet<String>();
 		targetObjects.add(v);
-		return new MultiTargetRelationalValue(this.attribute, targetObjects, this.hashTuple.getHashFactory());
+		return new MultiTargetRelationalValue(this.attribute, targetObjects);
 	}
 	
 	@Override
 	public Value appendRelationalTarget(String v) {
 		TreeSet<String> newTargetObjects = new TreeSet<String>(this.targetObjects);
 		newTargetObjects.add(v);
-		return new MultiTargetRelationalValue(this.attribute, newTargetObjects, this.hashTuple.getHashFactory());
+		return new MultiTargetRelationalValue(this.attribute, newTargetObjects);
 	}
 	
 	@Override
 	public Value appendAllRelationalTargets(Collection<String> targets) {
 		TreeSet<String> newTargetObjects = new TreeSet<String>(this.targetObjects);
 		newTargetObjects.addAll(targets);
-		return new MultiTargetRelationalValue(this.attribute, newTargetObjects, this.hashTuple.getHashFactory());
+		return new MultiTargetRelationalValue(this.attribute, newTargetObjects);
 	}
 	
 	public Value removeAllRelationalTargets(){
-		return new MultiTargetRelationalValue(attribute, this.hashTuple.getHashFactory());
+		return new MultiTargetRelationalValue(attribute);
 	}
 	public Value replaceRelationalTarget(String target){
 		TreeSet<String> newTargetObjects = new TreeSet<String>(this.targetObjects);
 		newTargetObjects.remove(target);
-		return new MultiTargetRelationalValue(this.attribute, targetObjects, this.hashTuple.getHashFactory());
+		return new MultiTargetRelationalValue(this.attribute, targetObjects);
 	}
 	
 	@Override

@@ -29,10 +29,9 @@ public class DiscreteValue extends Value{
 	 * Initializes this value to be an assignment for Attribute attribute.
 	 * @param attribute
 	 */
-	public DiscreteValue(Attribute attribute, ValueHashFactory hashingFactory){
-		super(attribute, hashingFactory);
+	public DiscreteValue(Attribute attribute){
+		super(attribute);
 		this.discVal = -1;
-		this.computeHash(hashingFactory);
 	}
 	
 	/**
@@ -45,10 +44,9 @@ public class DiscreteValue extends Value{
 		this.discVal = dv.discVal;
 	}
 	
-	public DiscreteValue(Attribute attribute, ValueHashFactory hashingFactory, int v) {
-		super(attribute, hashingFactory);
+	public DiscreteValue(Attribute attribute, int v) {
+		super(attribute);
 		this.discVal = v;
-		this.computeHash(hashingFactory);
 	}
 	
 	@Override
@@ -63,22 +61,22 @@ public class DiscreteValue extends Value{
 	
 	@Override
 	public final Value changeValue(int v) {
-		return new DiscreteValue(this.attribute, this.hashTuple.getHashFactory(),  v);
+		return new DiscreteValue(this.attribute,  v);
 	}
 	
 	@Override
 	public final Value changeValue(double v) {
-		return new DiscreteValue(this.attribute, this.hashTuple.getHashFactory(), (int)v);
+		return new DiscreteValue(this.attribute, (int)v);
 	}
 	
 	@Override
 	public final Value changeValue(boolean v) {
-		return new DiscreteValue(this.attribute, this.hashTuple.getHashFactory(), v ? 1 : 0);
+		return new DiscreteValue(this.attribute, v ? 1 : 0);
 	}
 	
 	@Override
 	public final Value changeValue(String v) {
-		return new DiscreteValue(this.attribute, this.hashTuple.getHashFactory(), attribute.discValuesHash.get(v));
+		return new DiscreteValue(this.attribute, attribute.discValuesHash.get(v));
 	}
 	
 	@Override

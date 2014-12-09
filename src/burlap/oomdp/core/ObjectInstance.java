@@ -25,7 +25,7 @@ public final class ObjectInstance {
 	private final ObjectClass					obClass;			//object class to which this object belongs
 	private final String						name;				//name of the object for disambiguation
 	private final List <Value>					values;				//the values for each attribute
-	private final ObjectHashTuple				hashTuple;
+	public ObjectHashTuple				hashTuple;
 	
 	
 	
@@ -34,12 +34,12 @@ public final class ObjectInstance {
 	 * @param obClass the object class to which this object belongs
 	 * @param name the name of the object
 	 */
-	public ObjectInstance(ObjectClass obClass, String name, ObjectHashFactory hashingFactory){
+	public ObjectInstance(ObjectClass obClass, String name){
 		
 		this.obClass = obClass;
 		this.name = name;
-		this.values = Collections.unmodifiableList(this.initializeValueObjects(hashingFactory.getValueHashFactory()));
-		this.hashTuple = hashingFactory.hashObject(this);
+		this.values = Collections.unmodifiableList(this.initializeValueObjects());
+		this.hashTuple = null;
 		
 	}
 	
@@ -57,14 +57,12 @@ public final class ObjectInstance {
 			
 	}
 	
-	public ObjectInstance(ObjectClass obClass, String name, List<Value> newValues, ObjectHashFactory hashingFactory) {
+	public ObjectInstance(ObjectClass obClass, String name, List<Value> newValues) {
 		this.obClass = obClass;
 		this.name = name;
-		List<Value> values = new  ArrayList<Value>(newValues);
-		this.values = Collections.unmodifiableList(values);
-		this.hashTuple = hashingFactory.hashObject(this);
+		this.values = Collections.unmodifiableList(newValues);
+		this.hashTuple = null;
 	}
-	
 	
 	public ObjectInstance(String name, ObjectInstance objectInstance) {
 		this.obClass = objectInstance.obClass;
@@ -87,18 +85,18 @@ public final class ObjectInstance {
 	 * Creates new value object assignments for each of this object instance class's attributes.
 	 * @param valueHashFactory 
 	 */
-	public List <Value> initializeValueObjects(ValueHashFactory valueHashFactory){
+	public List <Value> initializeValueObjects(){
 		
 		List <Value> values = new ArrayList <Value>(obClass.numAttributes());
 		for(Attribute att : obClass.attributeList){
-			values.add(att.valueConstructor(valueHashFactory));
+			values.add(att.valueConstructor());
 		}
 		return values;
 	}
 	
 	
 	public ObjectInstance replaceName(String name){
-		return new ObjectInstance(this.obClass, name, this.values, this.hashTuple.getHashingFactory());
+		return new ObjectInstance(name, this);
 	}
 	
 	/**
@@ -110,12 +108,16 @@ public final class ObjectInstance {
 		throw new UnsupportedOperationException("Method is deprecated, don't use");
 	}
 	
-	public ObjectInstance changeValue(String attName, String v){
+	public ObjectInstance setValue(int index, Value value) {
 		List<Value> values = new ArrayList<Value>(this.values);
-		int ind = obClass.attributeIndex(attName);
-		Value value = values.get(ind);
-		values.set(ind, value.changeValue(v));
-		return new ObjectInstance(this.obClass, this.name, values, this.hashTuple.getHashingFactory());
+		values.set(index, value);
+		return new ObjectInstance(this.obClass, this.name, values);
+	}
+	
+	public ObjectInstance changeValue(String attName, String v){
+		int index = obClass.attributeIndex(attName);
+		Value value = values.get(index);
+		return this.setValue(index, value.changeValue(v));
 	}
 	
 	/**
@@ -134,11 +136,9 @@ public final class ObjectInstance {
 	}
 	
 	public ObjectInstance changeValue(String attName, double v){
-		List<Value> values = new ArrayList<Value>(this.values);
-		int ind = obClass.attributeIndex(attName);
-		Value value = values.get(ind);
-		values.set(ind, value.changeValue(v));
-		return new ObjectInstance(this.obClass, this.name, values, this.hashTuple.getHashingFactory());
+		int index = obClass.attributeIndex(attName);
+		Value value = values.get(index);
+		return this.setValue(index, value.changeValue(v));
 	}
 	
 	/**
@@ -156,11 +156,9 @@ public final class ObjectInstance {
 	}
 	
 	public ObjectInstance changeValue(String attName, int v){
-		List<Value> values = new ArrayList<Value>(this.values);
-		int ind = obClass.attributeIndex(attName);
-		Value value = values.get(ind);
-		values.set(ind, value.changeValue(v));
-		return new ObjectInstance(this.obClass, this.name, values, this.hashTuple.getHashingFactory());
+		int index = obClass.attributeIndex(attName);
+		Value value = values.get(index);
+		return this.setValue(index, value.changeValue(v));
 	}
 	
 	/**
@@ -178,11 +176,9 @@ public final class ObjectInstance {
 	}
 	
 	public ObjectInstance changeValue(String attName, boolean v){
-		List<Value> values = new ArrayList<Value>(this.values);
-		int ind = obClass.attributeIndex(attName);
-		Value value = values.get(ind);
-		values.set(ind, value.changeValue(v));
-		return new ObjectInstance(this.obClass, this.name, values, this.hashTuple.getHashingFactory());
+		int index = obClass.attributeIndex(attName);
+		Value value = values.get(index);
+		return this.setValue(index, value.changeValue(v));
 	}
 	
 	/**
@@ -201,11 +197,9 @@ public final class ObjectInstance {
 	
 	
 	public ObjectInstance changeValue(String attName, int[] v){
-		List<Value> values = new ArrayList<Value>(this.values);
-		int ind = obClass.attributeIndex(attName);
-		Value value = values.get(ind);
-		values.set(ind, value.changeValue(v));
-		return new ObjectInstance(this.obClass, this.name, values, this.hashTuple.getHashingFactory());
+		int index = obClass.attributeIndex(attName);
+		Value value = values.get(index);
+		return this.setValue(index, value.changeValue(v));
 	}
 	
 	/**
@@ -223,11 +217,9 @@ public final class ObjectInstance {
 	}
 	
 	public ObjectInstance changeValue(String attName, double[] v){
-		List<Value> values = new ArrayList<Value>(this.values);
-		int ind = obClass.attributeIndex(attName);
-		Value value = values.get(ind);
-		values.set(ind, value.changeValue(v));
-		return new ObjectInstance(this.obClass, this.name, values, this.hashTuple.getHashingFactory());
+		int index = obClass.attributeIndex(attName);
+		Value value = values.get(index);
+		return this.setValue(index, value.changeValue(v));
 	}
 	
 	/**
@@ -246,11 +238,9 @@ public final class ObjectInstance {
 	
 	
 	public ObjectInstance appendRelationalTarget(String attName, String target){
-		List<Value> values = new ArrayList<Value>(this.values);
-		int ind = obClass.attributeIndex(attName);
-		Value value = values.get(ind);
-		values.set(ind, value.appendRelationalTarget(target));
-		return new ObjectInstance(this.obClass, this.name, values, this.hashTuple.getHashingFactory());
+		int index = obClass.attributeIndex(attName);
+		Value value = values.get(index);
+		return this.setValue(index, value.appendRelationalTarget(target));
 	}
 	
 	/**
@@ -269,11 +259,9 @@ public final class ObjectInstance {
 	}
 	
 	public ObjectInstance appendAllRelationTargets(String attName, Collection<String> targets){
-		List<Value> values = new ArrayList<Value>(this.values);
-		int ind = obClass.attributeIndex(attName);
-		Value value = values.get(ind);
-		values.set(ind, value.appendAllRelationalTargets(targets));
-		return new ObjectInstance(this.obClass, this.name, values, this.hashTuple.getHashingFactory());
+		int index = obClass.attributeIndex(attName);
+		Value value = values.get(index);
+		return this.setValue(index, value.appendAllRelationalTargets(targets));
 	}
 	
 	/**
@@ -293,11 +281,9 @@ public final class ObjectInstance {
 	}
 	
 	public ObjectInstance removeAllRelationalTarget(String attName){
-		List<Value> values = new ArrayList<Value>(this.values);
-		int ind = obClass.attributeIndex(attName);
-		Value value = values.get(ind);
-		values.set(ind, value.removeAllRelationalTargets());
-		return new ObjectInstance(this.obClass, this.name, values, this.hashTuple.getHashingFactory());
+		int index = obClass.attributeIndex(attName);
+		Value value = values.get(index);
+		return this.setValue(index,value.removeAllRelationalTargets());
 	}
 	
 	/**
@@ -314,11 +300,9 @@ public final class ObjectInstance {
 	}
 	
 	public ObjectInstance replaceRelationalTarget(String attName, String target){
-		List<Value> values = new ArrayList<Value>(this.values);
-		int ind = obClass.attributeIndex(attName);
-		Value value = values.get(ind);
-		values.set(ind, value.replaceRelationalTarget(target));
-		return new ObjectInstance(this.obClass, this.name, values, this.hashTuple.getHashingFactory());
+		int index = obClass.attributeIndex(attName);
+		Value value = values.get(index);
+		return this.setValue(index, value.replaceRelationalTarget(target));
 	}
 	
 	/**
@@ -569,10 +553,9 @@ public final class ObjectInstance {
   			return false;
   		}
 	
-		Value v, ov;
  		for (int i = 0; i < this.values.size(); i++) {
- 			v = this.values.get(i);
- 			ov = obj.values.get(i);
+ 			Value v = this.values.get(i);
+ 			Value ov = obj.values.get(i);
  			if (!v.equals(ov)) {
  				return false;
 			}
@@ -585,8 +568,7 @@ public final class ObjectInstance {
 	
 	
 	public int hashCode(){
-		//return name.hashCode();
-		return this.hashTuple.hashCode();
+		return (this.hashTuple == null) ? 0 : this.hashTuple.hashCode();
 	}
 
 	public ObjectHashTuple getHashTuple() {

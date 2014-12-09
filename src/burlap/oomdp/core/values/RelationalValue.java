@@ -28,10 +28,9 @@ public class RelationalValue extends Value {
 	 * Initializes this value to be an assignment for Attribute attribute.
 	 * @param attribute
 	 */
-	public RelationalValue(Attribute attribute, ValueHashFactory hashingFactory){
-		super(attribute, hashingFactory);
+	public RelationalValue(Attribute attribute){
+		super(attribute);
 		this.target = "";
-		this.computeHash(hashingFactory);
 	}
 	
 	
@@ -45,10 +44,9 @@ public class RelationalValue extends Value {
 		this.target = rv.target;
 	}
 	
-	public RelationalValue(Attribute attribute, String target, ValueHashFactory hashingFactory) {
-		super(attribute, hashingFactory);
+	public RelationalValue(Attribute attribute, String target) {
+		super(attribute);
 		this.target = target;
-		this.computeHash(hashingFactory);
 	}
 	
 	@Override
@@ -64,22 +62,22 @@ public class RelationalValue extends Value {
 	
 	@Override
 	public Value changeValue(String v) {
-		return new RelationalValue(this.attribute, v, this.hashTuple.getHashFactory());
+		return new RelationalValue(this.attribute, v);
 	}
 	
 	@Override
 	public Value appendRelationalTarget(String v) {
-		return new RelationalValue(this.attribute, v, this.hashTuple.getHashFactory());
+		return new RelationalValue(this.attribute, v);
 	}
 	
 	@Override
 	public Value removeAllRelationalTargets(){
-		return new RelationalValue(attribute, this.hashTuple.getHashFactory());
+		return new RelationalValue(attribute);
 	}
 	
 	@Override
 	public Value replaceRelationalTarget(String target){
-		return new RelationalValue(this.attribute, this.hashTuple.getHashFactory());
+		return new RelationalValue(this.attribute);
 	}
 	
 	@Override

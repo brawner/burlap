@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -48,6 +49,13 @@ public final class State {
 	
 	private final int 											numObservedObjects;
 	private final int											numHiddenObjects;
+	
+	private static Comparator<List<ObjectInstance>> objectClassComparator = new Comparator<List<ObjectInstance>>() {
+		@Override
+		public int compare(List<ObjectInstance> o1, List<ObjectInstance> o2) {
+			return o1.get(0).getTrueClassName().compareTo(o2.get(0).getTrueClassName());
+		}
+	};
 	//private final Domain domain;
 	
 	
@@ -59,7 +67,6 @@ public final class State {
 		this.objectMap = Collections.unmodifiableMap(new HashMap<String, Integer>());
 		this.numObservedObjects = 0;
 		this.numHiddenObjects = 0;
-		//this.domain = domain;
 	}
 	
 	
@@ -121,6 +128,27 @@ public final class State {
 		this.objectMap = Collections.unmodifiableMap(objectMap);
 	}
 	
+	public State(List<ObjectInstance> objects, List<ObjectInstance> hiddenObjects, List<List<Integer>> objectIndexedByTrueClass, Map<String, Integer> objectClassMap, int numObservedObjects, int numHiddenObjects) {
+		this.objectInstances = Collections.unmodifiableList(objects);
+		this.hiddenObjectInstances = Collections.unmodifiableList(hiddenObjects);
+		this.objectIndexByTrueClass = Collections.unmodifiableList(objectIndexedByTrueClass);
+		this.objectClassMap = Collections.unmodifiableMap(objectClassMap);
+		this.numObservedObjects = numObservedObjects;
+		this.numHiddenObjects = numHiddenObjects;
+		this.objectMap = Collections.unmodifiableMap(this.buildObjectMap());
+		
+	}
+	
+	public State(List<ObjectInstance> objects, List<ObjectInstance> hiddenObjects, Map<String, Integer> objectMap, List<List<Integer>> objectIndexedByTrueClass, Map<String, Integer> objectClassMap, int numObservedObjects, int numHiddenObjects) {
+		this.objectInstances = Collections.unmodifiableList(objects);
+		this.hiddenObjectInstances = Collections.unmodifiableList(hiddenObjects);
+		this.objectIndexByTrueClass = Collections.unmodifiableList(objectIndexedByTrueClass);
+		this.objectClassMap = Collections.unmodifiableMap(objectClassMap);
+		this.objectMap = Collections.unmodifiableMap(objectMap);
+		this.numObservedObjects = numObservedObjects;
+		this.numHiddenObjects = numHiddenObjects;
+	}
+	
 	/**
 	 * Returns a deep copy of this state.
 	 * @return a deep copy of this state.
@@ -129,7 +157,19 @@ public final class State {
 		return new State(this);
 	}
 	
-	
+	private final Map<String, Integer> buildObjectMap() {
+		int initialSize = (int)((this.numObservedObjects + this.numHiddenObjects)/0.75 + 1);
+		Map<String, Integer> objectMap = new HashMap<String, Integer>(initialSize);
+		for (int i = 0, end = this.objectInstances.size(); i < end; i++) {
+			String name = this.objectInstances.get(i).getName();
+			objectMap.put(name, i);
+		}
+		for (int i = 0, end = this.hiddenObjectInstances.size(); i < end; i++) {
+			String name = this.hiddenObjectInstances.get(i).getName();
+			objectMap.put(name, i + this.numObservedObjects);
+		}
+		return objectMap;
+	}
 	
 	private final List<ObjectInstance> createObjectLists(List<ObjectInstance> objectList, Map<String, Integer> objectMap, int offset) {
 		List<ObjectInstance> objectInstances = new ArrayList<ObjectInstance>(objectList.size());
@@ -398,20 +438,14 @@ public final class State {
 		List<ObjectInstance> objects = this.objectInstances;
 		List<ObjectInstance> hiddenObjects = this.hiddenObjectInstances;
 		
-		if (index < objects.size()) {
+		if (index < this.numObservedObjects) {
 			objects = new ArrayList<ObjectInstance>(objects);
-			objects.remove(index);
+			objects.set(index, newObject);
 		} else {
 			hiddenObjects = new ArrayList<ObjectInstance>(objects);
-			hiddenObjects.remove(index - objects.size());
+			hiddenObjects.set(index - this.numObservedObjects, newObject);
 		}
-		
-		if (objects.remove(objectToReplace)) {
-			objects.add(newObject);
-		} else if (hiddenObjects.remove(objectToReplace)) {
-			hiddenObjects.add(newObject);
-		}
-		return new State(objects, hiddenObjects, this.objectClassMap);
+		return new State(objects, hiddenObjects, this.objectMap, this.objectIndexByTrueClass, this.objectClassMap, this.numObservedObjects, this.numHiddenObjects);
 	}
 	
 	public final State replaceAllObjects(List<ObjectInstance> objectsToRemove, List<ObjectInstance> objectsToAdd) {
@@ -600,59 +634,96 @@ public final class State {
 			return false;
 		}
 		
+		int numTotalObjects = this.numTotalObjects();
+		Collection<Integer> matchedObjects = new ArrayList<Integer>(numTotalObjects);
+		List<Integer> unmatchedObjects = new ArrayList<Integer>(numTotalObjects);
+		this.checkOrderedObjects(this.objectInstances, so.objectInstances, 0, matchedObjects,
+				unmatchedObjects);
+		this.checkOrderedObjects(this.hiddenObjectInstances, so.hiddenObjectInstances, this.numObservedObjects, matchedObjects,
+				unmatchedObjects);
 		
-		Set<Integer> matchedObjects = new HashSet<Integer>((int)(this.numTotalObjects() / 0.75) + 1);
-		for (int i = 0; i < this.objectIndexByTrueClass.size(); i++){
-			List<Integer> objectIndices = this.objectIndexByTrueClass.get(i);
-			if (objectIndices.isEmpty()) {
-				continue;
-			}
-			
-			String oclass = this.getObject(objectIndices.get(0)).getObjectClass().name;
-			
-			List <Integer> oobjectsIndices = so.objectIndexByTrueClass.get(i);
-			if (objectIndices.size() != oobjectsIndices.size() || 
-					!oclass.equals(so.getObject(objectIndices.get(0)).getObjectClass().name)) {
-				
-				int position = so.objectClassMap.get(oclass);
-				oobjectsIndices = so.objectIndexByTrueClass.get(position);
-			} 
-			 
-			if(objectIndices.size() != oobjectsIndices.size()){
+		if (unmatchedObjects.isEmpty()) {
+			return true;
+		}
+		
+		matchedObjects = new HashSet<Integer>(matchedObjects);
+		List<Integer> stillUnmatched = new ArrayList<Integer>(numTotalObjects);
+		checkUnorderedObjects(so, matchedObjects, unmatchedObjects,
+				stillUnmatched);
+		
+		return stillUnmatched.isEmpty();
+		/*
+		if (stillUnmatched.isEmpty()) {
+			return true;
+		}
+		return false;
+		
+		return checkUnorderedValueEquals(so, matchedObjects, stillUnmatched);*/
+	}
+
+
+	private boolean checkUnorderedValueEquals(State so,
+			Collection<Integer> matchedObjects, List<Integer> stillUnmatched) {
+		for (Integer objectIndex : stillUnmatched) {
+			ObjectInstance o = this.getObject(objectIndex);
+			String oclass = o.getTrueClassName();
+			Integer classPosition = so.objectClassMap.get(oclass);
+			if (classPosition == null) {
 				return false;
 			}
-			
-			for(Integer j : objectIndices){
-				ObjectInstance o = this.getObject(j);
-				ObjectInstance oo = so.getObject(j);
-				if (o.valueEquals(oo)) {
+			List<Integer> ootherIndices = so.objectIndexByTrueClass.get(classPosition);
+			boolean foundMatch = false;
+			for(Integer k : ootherIndices){
+				if(matchedObjects.contains(k)){
 					continue;
 				}
-				other = so.getObject(o.getName());
-				if (o.valueEquals(oo)){
-					continue;
-				}
-				boolean foundMatch = false;
-				for(Integer k : oobjectsIndices){
-					if(matchedObjects.contains(k)){
-						continue;
-					}
-					
-					if(o.valueEquals(so.getObject(k))){
-						foundMatch = true;
-						matchedObjects.add(k);
-						break;
-					}
-				}
-				if(!foundMatch){
-					return false;
+				
+				if(o.valueEquals(so.getObject(k))){
+					foundMatch = true;
+					matchedObjects.add(k);
+					break;
 				}
 			}
-			
+			if(!foundMatch){
+				return false;
+			}
 		}
 		
 		
 		return true;
+	}
+
+
+	private void checkUnorderedObjects(State so,
+			Collection<Integer> matchedObjects, List<Integer> unmatchedObjects,
+			List<Integer> stillUnmatched) {
+		for (Integer objectIndex : unmatchedObjects) {
+			ObjectInstance o = this.getObject(objectIndex);
+			Integer otherPosition = so.objectMap.get(o.getName());
+			if (otherPosition != null) {
+				ObjectInstance oo = so.getObject(otherPosition);
+				if (o.valueEquals(oo)){
+					matchedObjects.add(otherPosition);
+					continue;
+				} else {
+					stillUnmatched.add(otherPosition);
+				}
+			}
+		}
+	}
+
+
+	private void checkOrderedObjects(List<ObjectInstance> objects, List<ObjectInstance> otherObjects, int offset,
+			Collection<Integer> matchedObjects, List<Integer> unmatchedObjects) {
+		for (int i = 0, end = objects.size(); i < end; i++) {
+			ObjectInstance o = objects.get(i);
+			ObjectInstance oo = otherObjects.get(i);
+			if (o.valueEquals(oo)) {
+				matchedObjects.add(i + offset);
+			} else {
+				unmatchedObjects.add(i + offset);
+			}
+		}
 	}
 	
 	/**
@@ -795,8 +866,8 @@ public final class State {
 	 * Returns a set of of the object class names for all object classes that have instantiated objects in this state.
 	 * @return a set of of the object class names for all object classes that have instantiated objects in this state.
 	 */
-	public Set <String> getObjectClassesPresent(){
-		return new HashSet<String>(objectClassMap.keySet());
+	public List<String> getObjectClassesPresent(){
+		return new ArrayList<String>(this.objectClassMap.keySet());
 	}
 	
 	
@@ -812,6 +883,28 @@ public final class State {
 				objects.add(this.getObject(i));
 			}
 		}
+		return allObjects;
+	}
+	
+	
+	public List <List <ObjectInstance>> getAllObjectsSortedByTrueClass(){
+		
+		int listSize =  this.objectIndexByTrueClass.size();
+		List<List<ObjectInstance>> allObjects = new ArrayList<List<ObjectInstance>>(listSize);
+		
+		for (int i = 0; i < listSize; i++){
+			List<Integer> indices = this.objectIndexByTrueClass.get(i);
+			if (indices.isEmpty()) {
+				continue;
+			}
+			
+			List<ObjectInstance> objects = new ArrayList<ObjectInstance>(listSize);
+			for (Integer j : indices) {
+				objects.add(this.getObject(j));
+			}
+			allObjects.add(objects);
+		}
+		Collections.sort(allObjects, State.objectClassComparator);
 		return allObjects;
 	}
 	
@@ -974,22 +1067,25 @@ public final class State {
 		
 		List <List <Integer>> currentBindingSets = new ArrayList <List<Integer>>();
 		List <String> uniqueRenames = this.identifyUniqueClassesInParameters(paramOrderGroups);
-		List <String> uniqueParamClases = this.identifyUniqueClassesInParameters(paramClasses);
+		List <String> uniqueParamClasses = this.identifyUniqueClassesInParameters(paramClasses);
 		
 		List<Integer> currentObjects = new ArrayList<Integer>();
 		int initialSize = 1;
 		//first make sure we have objects for each class parameter; if not return empty list
-		for(String oclass : uniqueParamClases){
+		for(String oclass : uniqueParamClasses){
 			int n = this.getNumOccurencesOfClassInParameters(oclass, paramClasses);
+			
 			Integer position = this.objectClassMap.get(oclass);
 			if(position == null){
 				return new ArrayList <List <String>>();
 			}
+			
 			List <Integer> objectsOfClass = objectIndexByTrueClass.get(position);
 			int numObjects = objectsOfClass.size();
 			if(numObjects < n){
 				return new ArrayList <List <String>>();
 			}
+			
 			initialSize *= numObjects;
 			currentObjects.addAll(objectsOfClass);
 		}
@@ -1241,6 +1337,7 @@ public final class State {
 		
 		return 1;
 	}
+	
 	
 	
 	

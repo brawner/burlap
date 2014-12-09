@@ -28,10 +28,9 @@ public class IntValue extends Value {
 	 * Initializes for a given attribute. The default value will be set to 0.
 	 * @param attribute
 	 */
-	public IntValue(Attribute attribute, ValueHashFactory hashingFactory) {
-		super(attribute, hashingFactory);
+	public IntValue(Attribute attribute) {
+		super(attribute);
 		this.intVal = 0;
-		this.computeHash(hashingFactory);
 	}
 	
 	
@@ -44,10 +43,9 @@ public class IntValue extends Value {
 		this.intVal = ((IntValue)v).intVal;
 	}
 	
-	public IntValue(Attribute attribute, int v, ValueHashFactory hashingFactory) {
-		super(attribute, hashingFactory);
+	public IntValue(Attribute attribute, int v) {
+		super(attribute);
 		this.intVal = v;
-		this.computeHash(hashingFactory);
 	}
 	
 	@Override
@@ -63,22 +61,22 @@ public class IntValue extends Value {
 
 	@Override
 	public final Value changeValue(int v) {
-		return new IntValue(this.attribute, v, this.hashTuple.getHashFactory());
+		return new IntValue(this.attribute, v);
 	}
 	
 	@Override
 	public final Value changeValue(double v) {
-		return new IntValue(this.attribute, (int)v, this.hashTuple.getHashFactory());
+		return new IntValue(this.attribute, (int)v);
 	}
 	
 	@Override
 	public final Value changeValue(boolean v) {
-		return new IntValue(this.attribute, v ? 1 : 0, this.hashTuple.getHashFactory());
+		return new IntValue(this.attribute, v ? 1 : 0);
 	}
 	
 	@Override
 	public final Value changeValue(String v) {
-		return new IntValue(this.attribute, Integer.parseInt(v), this.hashTuple.getHashFactory());
+		return new IntValue(this.attribute, Integer.parseInt(v));
 	}
 	
 	@Deprecated

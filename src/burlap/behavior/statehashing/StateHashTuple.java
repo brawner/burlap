@@ -32,7 +32,6 @@ public abstract class StateHashTuple {
 	public StateHashTuple(State s){
 		this.s = s.copy();
 		this.hashCode = this.computeHashCode();
-		//needToRecomputeHashCode = true;
 	}
 	
 	@Override

@@ -11,20 +11,18 @@ public class StateBuilder {
 	private final List<ObjectInstance> hiddenObjects;
 	private final Map<String, Integer> objectMap;
 	private final Map<String, Integer> objectClassMap;
-	private final List<List<Integer>>  objectsIndexedByTrueClass;
+	
 	public StateBuilder() {
 		this.objectInstances = new ArrayList<ObjectInstance>();
 		this.hiddenObjects = new ArrayList<ObjectInstance>();
 		this.objectMap = new HashMap<String, Integer>();
 		this.objectClassMap = new HashMap<String, Integer>();
-		this.objectsIndexedByTrueClass = new ArrayList<List<Integer>>();
 	}
 	
 	public StateBuilder(State state) {
 		this.objectInstances = new ArrayList<ObjectInstance>(state.getObservableObjects());
 		this.hiddenObjects = new ArrayList<ObjectInstance>(state.getHiddenObjects());
 		this.objectMap = new HashMap<String, Integer>(state.getObjectMap());
-		this.objectsIndexedByTrueClass = state.getAllObjectIndicesByTrueClass();
 		this.objectClassMap = state.getObjectClassMap();
 	}
 	
@@ -33,16 +31,37 @@ public class StateBuilder {
 		if (this.objectMap.put(object.getName(), position) == null) {
 			this.objectInstances.add(object);
 		}
+		this.updatePositions(position);
 	}
 	
 	public void addAll(Collection<ObjectInstance> objects) {
 		for (ObjectInstance object : objects) {
 			this.add(object);
 		}
+		this.updatePositions(this.objectInstances.size());
+	}
+	
+	private void updatePositions(int startPosition) {
+		if (startPosition < this.objectInstances.size()) {
+			for (int i = startPosition; i < this.objectInstances.size(); i++) {
+				String name = this.objectInstances.get(i).getName();
+				this.objectMap.put(name, i);
+			}
+		}
+		
+		if (!this.hiddenObjects.isEmpty()) {
+			startPosition -= this.objectInstances.size();
+			startPosition = Math.max(0, startPosition);
+			int numObservedObjects = this.objectInstances.size();
+			for (int i = startPosition ; i < this.hiddenObjects.size(); i++) {
+				String name = this.objectInstances.get(i).getName();
+				this.objectMap.put(name, i + numObservedObjects);
+			}
+		}
 	}
 	
 	public void addHidden(ObjectInstance object) {
-		int position = this.hiddenObjects.size();
+		int position = this.hiddenObjects.size() + this.objectInstances.size();
 		if (this.objectMap.put(object.getName(), position) != null) {
 			this.objectInstances.add(object);
 		}
@@ -55,12 +74,24 @@ public class StateBuilder {
 	}
 	
 	public void set(int position, ObjectInstance object) {
-		if (position < this.objectInstances.size()) {
-			this.objectInstances.set(position, object);
+		int adjustedPosition = position;
+		ObjectInstance removed = null, added = null;
+		
+		if (adjustedPosition < this.objectInstances.size()) {
+			removed = this.objectInstances.set(adjustedPosition, object);
+			added = object;
 		} else {
-			position -= this.objectInstances.size();
-			if (position < this.hiddenObjects.size()) {
-				this.hiddenObjects.set(position, object);
+			adjustedPosition -= this.objectInstances.size();
+			if (adjustedPosition < this.hiddenObjects.size()) {
+				removed = this.hiddenObjects.set(adjustedPosition, object);
+				added = object;
+			}
+		}
+		
+		if (added != null) {
+			this.objectMap.put(added.getName(), adjustedPosition);
+			if (removed != null) {
+				this.objectMap.remove(removed.getName());
 			}
 		}
 		
@@ -83,19 +114,22 @@ public class StateBuilder {
 	
 	public void remove(int position) {
 		String name = null;
+		
 		if (position < this.objectInstances.size()) {
 			ObjectInstance object = this.objectInstances.get(position);
 			name = (object == null) ? null : object.getName();
-			this.objectInstances.set(position, null);
+			this.objectInstances.remove(position);
 		} else {
 			position -= this.objectInstances.size();
 			ObjectInstance object = this.hiddenObjects.get(position);
 			name = (object == null) ? null : object.getName();
-			this.hiddenObjects.set(position, null);
+			this.hiddenObjects.remove(position);
 		}
 		if (name != null) {
 			this.objectMap.remove(name);
 		}
+		
+		this.updatePositions(position);
 	}
 	
 	public void remove(String objectName) {
@@ -108,7 +142,7 @@ public class StateBuilder {
 	public void remove(ObjectInstance object) {
 		this.remove(object.getName());
 	}
-	
+
 	public void removeAll(Collection<ObjectInstance> objects) {
 		for (ObjectInstance object: objects) {
 			this.remove(object);
@@ -117,6 +151,44 @@ public class StateBuilder {
 	
 	
 	public State toState() {
-		return new State(this.objectInstances, this.hiddenObjects, this.objectClassMap);
+		List<List<Integer>> objectsIndexedByTrueClass = this.buildObjectIndexByTrueClass(this.objectInstances, this.hiddenObjects, this.objectClassMap);
+		return new State(this.objectInstances, this.hiddenObjects, objectsIndexedByTrueClass, this.objectClassMap, this.objectInstances.size(), this.hiddenObjects.size());
+	}
+	
+	private final List<List<Integer>> buildObjectIndexByTrueClass(List<ObjectInstance> objects, List<ObjectInstance> hiddenObjects, Map<String, Integer> objectClassMap) {
+		int initialSize = objectClassMap.size();
+		List<List<Integer>> objectIndexByTrueClass = new ArrayList<List<Integer>>(initialSize);
+		for (int i = 0; i < initialSize; i++) {
+			objectIndexByTrueClass.add(new ArrayList<Integer>(objects.size()));
+		}
+
+		boolean madeModifiable = this.addObjectListToList(objects, objectIndexByTrueClass, objectClassMap, false);
+		madeModifiable = this.addObjectListToList(hiddenObjects, objectIndexByTrueClass, objectClassMap, true);
+		
+		return objectIndexByTrueClass;
+	}
+	
+	private boolean addObjectListToList(List<ObjectInstance> objects,
+			List<List<Integer>> objectIndexByTrueClass, Map<String, Integer> objectClassMap, boolean madeModifiable) {
+		for (int i = 0; i < objects.size(); i++) {
+			ObjectInstance object = objects.get(i);
+			
+			String objectClassName = object.getTrueClassName();
+			Integer position = objectClassMap.get(objectClassName);
+			
+			if (position == null) {
+				position = objectIndexByTrueClass.size();
+				if (!madeModifiable) {
+					objectClassMap = new HashMap<String, Integer>(objectClassMap);
+					madeModifiable = true;
+				}
+				objectClassMap.put(objectClassName, position );
+				objectIndexByTrueClass.add(new ArrayList<Integer>(objects.size()));
+			}
+			List<Integer> objectsOfClass = 
+					objectIndexByTrueClass.get(position);
+			objectsOfClass.add(i);
+		}
+		return madeModifiable;
 	}
 }

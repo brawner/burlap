@@ -21,10 +21,9 @@ public class DoubleArrayValue extends Value{
 
 	protected final double [] doubleArray;
 	
-	public DoubleArrayValue(Attribute attribute, ValueHashFactory hashingFactory) {
-		super(attribute, hashingFactory);
+	public DoubleArrayValue(Attribute attribute) {
+		super(attribute);
 		this.doubleArray = null;
-		this.computeHash(hashingFactory);
 	}
 	
 	public DoubleArrayValue(Value v){
@@ -34,10 +33,9 @@ public class DoubleArrayValue extends Value{
 	}
 	
 
- 	public DoubleArrayValue(Attribute attribute, ValueHashFactory hashingFactory, double[] arry) {
- 		super(attribute, hashingFactory);
+ 	public DoubleArrayValue(Attribute attribute, double[] arry) {
+ 		super(attribute);
  		this.doubleArray = (arry == null) ? null : arry.clone();
- 		this.computeHash(hashingFactory);
  	}
  	
  	@Override
@@ -60,7 +58,7 @@ public class DoubleArrayValue extends Value{
 		for(int i = 0; i < comps.length; i++){
 			doubleArray[i] = Double.parseDouble(comps[i]);
 		}
-		return new DoubleArrayValue(this.attribute, this.hashTuple.getHashFactory(), doubleArray);
+		return new DoubleArrayValue(this.attribute, doubleArray);
 	}
 	
 	@Override
@@ -69,12 +67,12 @@ public class DoubleArrayValue extends Value{
 		for(int i = 0; i < intArray.length; i++){
 			doubleArray[i] = intArray[i];
 		}
-		return new DoubleArrayValue(this.attribute, this.hashTuple.getHashFactory(), doubleArray);
+		return new DoubleArrayValue(this.attribute, doubleArray);
 	}
 	
 	@Override
 	public Value changeValue(double[] doubleArray) {
-		return new DoubleArrayValue(this.attribute, this.hashTuple.getHashFactory(), doubleArray);
+		return new DoubleArrayValue(this.attribute, doubleArray);
 	}
 	
 	@Override
