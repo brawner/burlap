@@ -28,17 +28,20 @@ public class StateBuilder {
 	
 	public void add(ObjectInstance object) {
 		int position = this.objectInstances.size();
-		if (this.objectMap.put(object.getName(), position) == null) {
+		
+		Integer displaced = this.objectMap.put(object.getName(), position);
+		if ( displaced == null) {
 			this.objectInstances.add(object);
-		}
-		this.updatePositions(position);
+			this.updatePositions(position);
+		} else {
+			this.objectMap.put(object.getName(), displaced);
+		}	
 	}
 	
 	public void addAll(Collection<ObjectInstance> objects) {
 		for (ObjectInstance object : objects) {
 			this.add(object);
 		}
-		this.updatePositions(this.objectInstances.size());
 	}
 	
 	private void updatePositions(int startPosition) {
@@ -62,8 +65,11 @@ public class StateBuilder {
 	
 	public void addHidden(ObjectInstance object) {
 		int position = this.hiddenObjects.size() + this.objectInstances.size();
-		if (this.objectMap.put(object.getName(), position) != null) {
+		Integer displaced = this.objectMap.put(object.getName(), position);
+		if ( displaced == null) {
 			this.objectInstances.add(object);
+		} else {
+			this.objectMap.put(object.getName(), displaced);
 		}
 	}
 	
@@ -88,7 +94,7 @@ public class StateBuilder {
 			}
 		}
 		
-		if (added != null) {
+		if (added != null && !added.equals(removed)) {
 			this.objectMap.put(added.getName(), adjustedPosition);
 			if (removed != null) {
 				this.objectMap.remove(removed.getName());
@@ -113,20 +119,16 @@ public class StateBuilder {
 	}
 	
 	public void remove(int position) {
-		String name = null;
+		ObjectInstance removed = null;
 		
 		if (position < this.objectInstances.size()) {
-			ObjectInstance object = this.objectInstances.get(position);
-			name = (object == null) ? null : object.getName();
-			this.objectInstances.remove(position);
+			removed = this.objectInstances.remove(position);
 		} else {
 			position -= this.objectInstances.size();
-			ObjectInstance object = this.hiddenObjects.get(position);
-			name = (object == null) ? null : object.getName();
-			this.hiddenObjects.remove(position);
+			removed = this.hiddenObjects.remove(position);
 		}
-		if (name != null) {
-			this.objectMap.remove(name);
+		if (removed != null) {
+			this.objectMap.remove(removed.getName());
 		}
 		
 		this.updatePositions(position);
@@ -145,14 +147,25 @@ public class StateBuilder {
 
 	public void removeAll(Collection<ObjectInstance> objects) {
 		for (ObjectInstance object: objects) {
-			this.remove(object);
+			this.remove(object.getName());
 		}
 	}
 	
 	
 	public State toState() {
 		List<List<Integer>> objectsIndexedByTrueClass = this.buildObjectIndexByTrueClass(this.objectInstances, this.hiddenObjects, this.objectClassMap);
-		return new State(this.objectInstances, this.hiddenObjects, objectsIndexedByTrueClass, this.objectClassMap, this.objectInstances.size(), this.hiddenObjects.size());
+		/*for (ObjectInstance object : this.objectInstances) {
+			if (!this.objectMap.containsKey(object.getName())) {
+				System.err.println("Uh oh");
+			}
+		}
+		for (ObjectInstance object : this.hiddenObjects) {
+			if (!this.objectMap.containsKey(object.getName())) {
+				System.err.println("Uh oh");
+			}
+		}*/
+		
+		return new State(this.objectInstances, this.hiddenObjects, this.objectMap, objectsIndexedByTrueClass, this.objectClassMap, this.objectInstances.size(), this.hiddenObjects.size());
 	}
 	
 	private final List<List<Integer>> buildObjectIndexByTrueClass(List<ObjectInstance> objects, List<ObjectInstance> hiddenObjects, Map<String, Integer> objectClassMap) {
@@ -163,13 +176,14 @@ public class StateBuilder {
 		}
 
 		boolean madeModifiable = this.addObjectListToList(objects, objectIndexByTrueClass, objectClassMap, false);
-		madeModifiable = this.addObjectListToList(hiddenObjects, objectIndexByTrueClass, objectClassMap, true);
+		madeModifiable = this.addObjectListToList(hiddenObjects, objectIndexByTrueClass, objectClassMap, madeModifiable);
 		
 		return objectIndexByTrueClass;
 	}
 	
 	private boolean addObjectListToList(List<ObjectInstance> objects,
 			List<List<Integer>> objectIndexByTrueClass, Map<String, Integer> objectClassMap, boolean madeModifiable) {
+		
 		for (int i = 0; i < objects.size(); i++) {
 			ObjectInstance object = objects.get(i);
 			
