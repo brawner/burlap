@@ -73,7 +73,8 @@ public class GroundedAction extends AbstractGroundedAction{
 	@Override
 	public String toString(){
 		StringBuffer buf = new StringBuffer();
-		buf.append(action.getName());
+		String actionName = (this.action== null) ? "NullAction" : this.action.getName();
+		buf.append(actionName);
 		for(int i = 0; i < params.length; i++){
 			buf.append(" ").append(params[i]);
 		}
