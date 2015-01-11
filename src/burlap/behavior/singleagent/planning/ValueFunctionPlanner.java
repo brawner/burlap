@@ -204,12 +204,28 @@ public abstract class ValueFunctionPlanner extends OOMDPPlanner implements QComp
 			matching = sh.getState().getObjectMatchingTo(indexSH.getState(), false);
 		}
 		
-		List <QValue> res = new ArrayList<QValue>();
 		List<AbstractGroundedAction> affActions = affController.getPrunedActionsForState(this.actions, s);
+		
+		List <QValue> res = new ArrayList<QValue>(affActions.size());
 		
 		for(AbstractGroundedAction ga : affActions){
 			res.add(this.getQ(sh, (GroundedAction)ga, matching));
 		}
+		
+		/*
+		for (Map.Entry<StateHashTuple, Double> entry : this.valueFunction.entrySet()) {
+			StateHashTuple sh1 = entry.getKey();
+			for (Map.Entry<StateHashTuple, Double> entry2 : this.valueFunction.entrySet()) {
+				StateHashTuple sh2 = entry2.getKey();
+				
+				if (sh1 != sh2) {
+					if (sh1.hashCode() != sh2.hashCode() && sh1.equals(sh2)) {
+						System.err.println("Inconsistent hashing");
+					}
+				}
+				
+			}
+		}*/
 		
 		return res;
 	}

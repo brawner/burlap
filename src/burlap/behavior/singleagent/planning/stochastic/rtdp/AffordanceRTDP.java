@@ -92,8 +92,6 @@ public class AffordanceRTDP extends RTDP {
 					ga =  (GroundedAction)this.rollOutPolicy.getAction(curState);
 				}
 				rolloutActions.add(ga);
-
-//				System.out.println("(affRTDP)Action : " + ga.actionName());
 				
 				// Update this state's value
 				double curV = this.value(sh);
@@ -111,12 +109,6 @@ public class AffordanceRTDP extends RTDP {
 			totalStates += nSteps;
 			
 			DPrint.cl(debugCode, "Pass: " + i + "; Num states: " + nSteps + " (total: " + totalStates + ")");
-			
-//			System.out.print("[affordanceRTDP] Action sequence: ");
-//			for(GroundedAction ga : rolloutActions) {
-//				System.out.print(ga + ",");
-//			}
-//			System.out.print("\n\n");
 			
 			if(delta < this.maxDelta){
 				consecutiveSmallDeltas++;

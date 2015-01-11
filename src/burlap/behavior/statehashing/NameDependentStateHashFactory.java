@@ -69,9 +69,9 @@ public class NameDependentStateHashFactory implements StateHashFactory {
 			int listSize = NameDependentStateHashFactory.this.getMaximumObjectListSize(this.getState());
 			ObjectInstance[] orderedObjects = new ObjectInstance[listSize];
 			List<ObjectInstance> objects = state.getObservableObjects();
-			int code = 0;
+			int code = 1;
 			for (ObjectInstance object : objects) {
-				code += object.hashCode();
+				code ^= object.hashCode();
 				
 				/*
 				String objectName = object.getName();
@@ -119,6 +119,8 @@ public class NameDependentStateHashFactory implements StateHashFactory {
 				return false;
 			}
 			NameDependentStateHashTuple o = (NameDependentStateHashTuple)other;
+			
+			// Could compare hashes?
 			
 			State state = this.getState();
 			State otherState = o.getState();

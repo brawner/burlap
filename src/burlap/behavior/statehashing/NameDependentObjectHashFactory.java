@@ -11,7 +11,7 @@ public class NameDependentObjectHashFactory extends ObjectHashFactory {
 	public ObjectHashTuple hashObject(ObjectInstance object) {
 		int code = object.getName().hashCode();
 		for (Value value : object.getValues()) {
-			code += value.hashCode();
+			code = 31*code + value.hashCode();					
 		}
 		return NameDependentObjectHashTuple.makeTuple(object, this, code);
 	}
