@@ -264,11 +264,6 @@ public class RTDP extends ValueFunctionPlanner {
 			if (i > 100) {
 				System.exit(0);
 			}
-//			System.out.print("Action sequence: ");
-//			for(GroundedAction ga : rolloutActions) {
-//				System.out.print(ga + ",");
-//			}
-//			System.out.print("\n\n");
 			if(delta < this.maxDelta){
 				consecutiveSmallDeltas++;
 				if(consecutiveSmallDeltas >= this.minNumRolloutsWithSmallValueChange){

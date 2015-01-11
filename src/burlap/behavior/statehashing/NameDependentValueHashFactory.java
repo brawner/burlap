@@ -6,7 +6,7 @@ public class NameDependentValueHashFactory extends ValueHashFactory {
 
 	@Override
 	public ValueHashTuple hashValue(Value value) {
-		int code = (value.isSet()) ? value.getStringVal().hashCode() : 31;
+		int code = (value.isSet()) ? value.getStringVal().hashCode() : 0;
 		return NameDependentValueHashTuple.makeTuple(value, this, code);
 	}
 	
