@@ -93,7 +93,7 @@ public class MultiTargetRelationalValue extends Value {
 	public Value replaceRelationalTarget(String target){
 		TreeSet<String> newTargetObjects = new TreeSet<String>(this.targetObjects);
 		newTargetObjects.remove(target);
-		return new MultiTargetRelationalValue(this.attribute, targetObjects, this.hashTuple.getHashFactory());
+		return new MultiTargetRelationalValue(this.attribute, newTargetObjects, this.hashTuple.getHashFactory());
 	}
 	
 	@Override

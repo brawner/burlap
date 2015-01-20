@@ -115,13 +115,22 @@ public class AffordancesController {
 		return true;
 	}
 	
+	public boolean isActionRecommendedInState(State state, GroundedAction groundedAction) {
+		for (Map.Entry<PropositionalFunction, Action> entry : this.affordancePFs.entrySet()) {
+			Action action = entry.getValue();
+			if (action.equals(groundedAction.action)) {
+				PropositionalFunction pf = entry.getKey();
+				return pf.isTrue(state, groundedAction.params);
+			}
+		}
+		return false;
+	}
+	
 	public List<AbstractGroundedAction> getPrunedActionsForState(List<Action> actions, State state) {
 		
 		List<AbstractGroundedAction> result = new ArrayList<AbstractGroundedAction>();
-		Set<String> actionsUsed = new HashSet<String>();
 		
 		if(expertFlag) {
-			List<GroundedAction> allActions = new ArrayList<GroundedAction>();
 			for (Map.Entry<PropositionalFunction, Action> entry : this.affordancePFs.entrySet()) {
 				PropositionalFunction pf = entry.getKey();
 				Action action = entry.getValue();

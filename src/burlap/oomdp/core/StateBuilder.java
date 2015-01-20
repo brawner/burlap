@@ -9,26 +9,35 @@ import java.util.Map;
 public class StateBuilder {
 	private final List<ObjectInstance> objectInstances;
 	private final List<ObjectInstance> hiddenObjects;
-	private final Map<String, Integer> objectMap;
+	private Map<String, Integer> objectMap;
 	private final Map<String, Integer> objectClassMap;
-	private final List<List<Integer>>  objectsIndexedByTrueClass;
+	private boolean mapIsModifiable;
 	public StateBuilder() {
 		this.objectInstances = new ArrayList<ObjectInstance>();
 		this.hiddenObjects = new ArrayList<ObjectInstance>();
 		this.objectMap = new HashMap<String, Integer>();
 		this.objectClassMap = new HashMap<String, Integer>();
-		this.objectsIndexedByTrueClass = new ArrayList<List<Integer>>();
+		this.mapIsModifiable = true;
 	}
 	
 	public StateBuilder(State state) {
+		
 		this.objectInstances = new ArrayList<ObjectInstance>(state.getObservableObjects());
 		this.hiddenObjects = new ArrayList<ObjectInstance>(state.getHiddenObjects());
-		this.objectMap = new HashMap<String, Integer>(state.getObjectMap());
-		this.objectsIndexedByTrueClass = state.getAllObjectIndicesByTrueClass();
+		this.objectMap = state.getObjectMap();
 		this.objectClassMap = state.getObjectClassMap();
+		this.mapIsModifiable = false;
+	}
+	
+	private void checkMap() {
+		if (!this.mapIsModifiable) {
+			this.objectMap = new HashMap<String, Integer>(this.objectMap);
+			this.mapIsModifiable = true;
+		}
 	}
 	
 	public void add(ObjectInstance object) {
+		this.checkMap();
 		int position = this.objectInstances.size();
 		if (this.objectMap.put(object.getName(), position) == null) {
 			this.objectInstances.add(object);
@@ -42,6 +51,7 @@ public class StateBuilder {
 	}
 	
 	public void addHidden(ObjectInstance object) {
+		this.checkMap();
 		int position = this.hiddenObjects.size();
 		if (this.objectMap.put(object.getName(), position) != null) {
 			this.objectInstances.add(object);
@@ -94,6 +104,7 @@ public class StateBuilder {
 			this.hiddenObjects.set(position, null);
 		}
 		if (name != null) {
+			this.checkMap();
 			this.objectMap.remove(name);
 		}
 	}
