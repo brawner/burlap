@@ -90,6 +90,7 @@ public class AffordanceRTDP extends RTDP {
 				GroundedAction ga = (GroundedAction)this.rollOutPolicy.getAction(curState);
 				if (ga == null) {
 					ga =  (GroundedAction)this.rollOutPolicy.getAction(curState);
+					break;
 				}
 				rolloutActions.add(ga);
 				
