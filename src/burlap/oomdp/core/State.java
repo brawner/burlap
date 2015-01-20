@@ -81,7 +81,9 @@ public final class State {
 		Map<String, Integer> objectMap = new HashMap<String, Integer>(2 * objects.size());
 		Map<String, Integer> objectClassMap = new HashMap<String, Integer>();
 		List<ObjectInstance> objectInstances = this.createObjectLists(objects, objectMap, 0);
+		
 		this.objectInstances = Collections.unmodifiableList(objectInstances);
+		
 		this.hiddenObjectInstances = Collections.unmodifiableList(new ArrayList<ObjectInstance>());
 		this.numObservableObjects = this.objectInstances.size();
 		this.numHiddenObjects = 0;
@@ -100,8 +102,10 @@ public final class State {
 		HashMap<String, Integer> objectMap = new HashMap<String, Integer>(size);
 		objectClassMap = new HashMap<String, Integer>(objectClassMap);
 		List<ObjectInstance> objectInstances = this.createObjectLists(objects, objectMap, 0);
+		
 		List<ObjectInstance> hiddenObjectsInstances = this.createObjectLists(hiddenObjects, objectMap, objectInstances.size());
 		this.objectInstances = Collections.unmodifiableList(objectInstances);
+		
 		this.hiddenObjectInstances = Collections.unmodifiableList(hiddenObjectsInstances);
 		this.numObservableObjects = this.objectInstances.size();
 		this.numHiddenObjects = hiddenObjects.size();
@@ -627,27 +631,47 @@ public final class State {
 			return false;
 		}
 		
-		Set<String> matchedObjects = new HashSet<String>();
-		for(Map.Entry<String, Integer> entry : this.objectClassMap.entrySet()){
+		
+		Set<Integer> matchedObjects = new HashSet<Integer>((int)(this.numTotalObjects() / 0.75) + 1);
+		for (int i = 0; i < this.objectIndexByTrueClass.size(); i++){
+			List<Integer> objectIndices = this.objectIndexByTrueClass.get(i);
+			if (objectIndices.isEmpty()) {
+				continue;
+			}
 			
-			String oclass = entry.getKey();
-			List <Integer> objectIndices = this.objectIndexByTrueClass.get(entry.getValue());
-			List <ObjectInstance> oobjects = so.getObjectsOfTrueClass(oclass);
-			if(objectIndices.size() != oobjects.size()){
+			String oclass = this.getObject(objectIndices.get(0)).getObjectClass().name;
+			
+			List <Integer> oobjectsIndices = so.objectIndexByTrueClass.get(i);
+			if (objectIndices.size() != oobjectsIndices.size() || 
+					!oclass.equals(so.getObject(objectIndices.get(0)).getObjectClass().name)) {
+				
+				int position = so.objectClassMap.get(oclass);
+				oobjectsIndices = so.objectIndexByTrueClass.get(position);
+			} 
+			 
+			if(objectIndices.size() != oobjectsIndices.size()){
 				return false;
 			}
 			
-			for(Integer i : objectIndices){
-				ObjectInstance o = this.getObject(i);
+			for(Integer j : objectIndices){
+				ObjectInstance o = this.getObject(j);
+				ObjectInstance oo = so.getObject(j);
+				if (o.valueEquals(oo)) {
+					continue;
+				}
+				other = so.getObject(o.getName());
+				if (o.valueEquals(oo)){
+					continue;
+				}
 				boolean foundMatch = false;
-				for(ObjectInstance oo : oobjects){
-					String ooname = oo.getName();
-					if(matchedObjects.contains(ooname)){
+				for(Integer k : oobjectsIndices){
+					if(matchedObjects.contains(k)){
 						continue;
 					}
-					if(o.valueEquals(oo)){
+					
+					if(o.valueEquals(so.getObject(k))){
 						foundMatch = true;
-						matchedObjects.add(ooname);
+						matchedObjects.add(k);
 						break;
 					}
 				}
@@ -661,7 +685,6 @@ public final class State {
 		
 		return true;
 	}
-	
 	
 	/**
 	 * Returns the number of observable and hidden object instances in this state.
@@ -699,7 +722,7 @@ public final class State {
 			return this.objectInstances.get(i);
 		}
 		item -= this.numObservableObjects;
-		if (item < this.numHiddenObjects) {
+		if (i < this.numHiddenObjects) {
 			return this.hiddenObjectInstances.get(i);
 		}
 		return null;
@@ -984,13 +1007,12 @@ public final class State {
 	 */
 	public List <List <String>> getPossibleBindingsGivenParamOrderGroups(String [] paramClasses, String [] paramOrderGroups){
 		
-		List <List <Integer>> resIndices = new ArrayList <List<Integer>>();
 		List <List <Integer>> currentBindingSets = new ArrayList <List<Integer>>();
 		List <String> uniqueRenames = this.identifyUniqueClassesInParameters(paramOrderGroups);
 		List <String> uniqueParamClases = this.identifyUniqueClassesInParameters(paramClasses);
 		
 		List<Integer> currentObjects = new ArrayList<Integer>();
-		
+		int initialSize = 1;
 		//first make sure we have objects for each class parameter; if not return empty list
 		for(String oclass : uniqueParamClases){
 			int n = this.getNumOccurencesOfClassInParameters(oclass, paramClasses);
@@ -999,16 +1021,17 @@ public final class State {
 				return new ArrayList <List <String>>();
 			}
 			List <Integer> objectsOfClass = objectIndexByTrueClass.get(position);
-			
-			if(objectsOfClass.size() < n){
+			int numObjects = objectsOfClass.size();
+			if(numObjects < n){
 				return new ArrayList <List <String>>();
 			}
+			initialSize *= numObjects;
 			currentObjects.addAll(objectsOfClass);
 		}
+		List <List <Integer>> resIndices = new ArrayList <List<Integer>>(initialSize);
 		Set<Integer> combSet = new HashSet<Integer>(2 * this.numTotalObjects());
 		this.getPossibleRenameBindingsHelper(resIndices, currentBindingSets, 0, currentObjects, uniqueRenames, paramClasses, paramOrderGroups, combSet);
-		
-		
+
 		return this.getBindingsFromIndices(resIndices);
 	}
 	
@@ -1099,7 +1122,7 @@ public final class State {
 	}
 	
 	private List <String> identifyUniqueClassesInParameters(String [] paramClasses){
-		List <String> unique = new ArrayList <String>();
+		List <String> unique = new ArrayList <String>(paramClasses.length);
 		for(int i = 0; i < paramClasses.length; i++){
 			if(!unique.contains(paramClasses[i])){
 				unique.add(paramClasses[i]);

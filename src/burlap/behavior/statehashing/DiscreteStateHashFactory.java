@@ -31,13 +31,14 @@ import burlap.oomdp.core.State;
 public class DiscreteStateHashFactory implements StateHashFactory {
 
 	protected Map<String, List<Attribute>>	attributesForHashCode;
-	private final ObjectHashFactory objectHashFactory = null;
+	private final ObjectHashFactory objectHashFactory;
 	
 	/**
 	 * Initializes this hashing factory to compute hash codes with all attributes of all object classes.
 	 */
 	public DiscreteStateHashFactory() {
 		attributesForHashCode = null;
+		this.objectHashFactory = new DiscreteObjectHashFactory();
 	}
 	
 	/**
@@ -46,6 +47,7 @@ public class DiscreteStateHashFactory implements StateHashFactory {
 	 */
 	public DiscreteStateHashFactory(Map<String, List<Attribute>> attributesForHashCode){
 		this.attributesForHashCode = attributesForHashCode;
+		this.objectHashFactory = new DiscreteObjectHashFactory(this.attributesForHashCode);
 	}
 	
 	public ObjectHashFactory getObjectHashFactory() {
@@ -133,7 +135,9 @@ public class DiscreteStateHashFactory implements StateHashFactory {
 				//too ensure object order invariance, the hash values must first be sorted by their object-wise hashcode
 				int [] obHashCodes = new int[obs.size()];
 				for(int i = 0; i < obs.size(); i++){
-					obHashCodes[i] = this.getIndexValue(obs.get(i), oc);
+					obHashCodes[i] = DiscreteStateHashFactory.this.objectHashFactory.hashObject(obs.get(i)).hashCode();
+					
+					//obHashCodes[i] = this.getIndexValue(obs.get(i), oc);
 				}
 				Arrays.sort(obHashCodes);
 				
@@ -152,7 +156,7 @@ public class DiscreteStateHashFactory implements StateHashFactory {
 		
 		
 		//this method will assume that attributes are all discrete
-		private int getIndexValue(ObjectInstance o, ObjectClass oc){
+		/*private int getIndexValue(ObjectInstance o, ObjectClass oc){
 			
 			List <Attribute> attributes = this.getAttributesForClass(oc);
 			int index = 0;
@@ -181,7 +185,7 @@ public class DiscreteStateHashFactory implements StateHashFactory {
 			
 			return index;
 			
-		}
+		}*/
 		
 		//this method will assume that attributes are all discrete
 		private int computeVolumeForClass(ObjectClass oclass){
