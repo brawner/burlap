@@ -1,5 +1,7 @@
 package burlap.oomdp.singleagent;
 
+import java.util.Arrays;
+
 import burlap.oomdp.core.AbstractGroundedAction;
 import burlap.oomdp.core.State;
 
@@ -75,16 +77,33 @@ public class GroundedAction extends AbstractGroundedAction{
 		StringBuffer buf = new StringBuffer();
 		String actionName = (this.action== null) ? "NullAction" : this.action.getName();
 		buf.append(actionName);
-		for(int i = 0; i < params.length; i++){
-			buf.append(" ").append(params[i]);
-		}
+		buf.append(" ").append(Arrays.toString(params));
 		
 		return buf.toString();
 	}
-	
+	/*
 	@Override
 	public int hashCode(){
 		return this.action.getName().hashCode();
+	}*/
+	
+	@Override
+	public int hashCode() {
+		if (this.action == null) {
+			return this.params.hashCode();
+		}
+		
+		int hash = this.action.hashCode();
+		String [] pog = this.action.getParameterOrderGroups();
+		
+		
+		for(int i = 0; i < this.params.length; i++){
+			
+			String p = this.params[i];
+			String orderGroup = pog[i];
+			hash ^= p.hashCode() * orderGroup.hashCode();
+		}
+		return hash;
 	}
 	
 	
@@ -100,11 +119,18 @@ public class GroundedAction extends AbstractGroundedAction{
 		}
 		
 		GroundedAction go = (GroundedAction)other;
-		
-		if(!this.action.getName().equals(go.action.getName())){
+		if ((this.action == null) != (go.action == null)) {
+			return false;
+		}
+		if(this.action != null && !this.action.getName().equals(go.action.getName())){
 			return false;
 		}
 		
+		if (this.params.equals(go.params)) {
+			return true;
+		} else if (this.action== null) {
+			return false;
+		}
 		String [] pog = this.action.getParameterOrderGroups();
 		
 		for(int i = 0; i < this.params.length; i++){
