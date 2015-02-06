@@ -82,6 +82,15 @@ public class HashIndexedHeap <T> implements Iterable<T>{
 		
 	}
 	
+	@Override
+	public String toString() {
+		StringBuffer buffer = new StringBuffer();
+		for (T node : this.nodesArray) {
+			buffer.append(node.toString());
+			buffer.append("\n");
+		}
+		return buffer.toString();
+	}
 	
 	/**
 	 * Returns the size of the heap

@@ -90,7 +90,7 @@ public class GroundedAction extends AbstractGroundedAction{
 	@Override
 	public int hashCode() {
 		if (this.action == null) {
-			return this.params.hashCode();
+			return Arrays.hashCode(this.params);
 		}
 		
 		int hash = this.action.hashCode();
@@ -126,7 +126,7 @@ public class GroundedAction extends AbstractGroundedAction{
 			return false;
 		}
 		
-		if (this.params.equals(go.params)) {
+		if (Arrays.equals(this.params, go.params)) {
 			return true;
 		} else if (this.action== null) {
 			return false;
