@@ -75,18 +75,32 @@ public class HashIndexedHeap <T> implements Iterable<T>{
 	public HashIndexedHeap(Comparator<T> pcompare, int capacity){
 		
 		nodesArray = new ArrayList<T>(capacity);
-		arrayIndexMap = new HashMap<T, Integer>(capacity);
+		int mapSize = (int)(capacity / 0.75) + 1;
+		arrayIndexMap = new HashMap<T, Integer>(mapSize);
 		size = 0;
 		maxHeap = true;
 		priorityCompare = pcompare;
 		
 	}
 	
+	public HashIndexedHeap(HashIndexedHeap<T> other){
+		nodesArray = new ArrayList<T>(other.nodesArray);
+		arrayIndexMap = new HashMap<T, Integer>(other.arrayIndexMap);
+		size = other.size;
+		maxHeap = other.maxHeap;
+		priorityCompare = other.priorityCompare;
+	}
+	
 	@Override
 	public String toString() {
+		HashIndexedHeap<T> copy = new HashIndexedHeap<T>(this.priorityCompare);
+		for (T item : this) {
+			copy.insert(item);
+		}
 		StringBuffer buffer = new StringBuffer();
-		for (T node : this.nodesArray) {
-			buffer.append(node.toString());
+		while (copy.peek() != null) {
+			T item = copy.poll();
+			buffer.append(item.toString());
 			buffer.append("\n");
 		}
 		return buffer.toString();
@@ -98,6 +112,11 @@ public class HashIndexedHeap <T> implements Iterable<T>{
 	 */
 	public int size(){
 		return size;
+	}
+	
+	public void clear() {
+		this.nodesArray.clear();
+		this.arrayIndexMap.clear();
 	}
 	
 	
@@ -331,8 +350,8 @@ public class HashIndexedHeap <T> implements Iterable<T>{
 		if(!maxHeap){
 			signFlip = -1;
 		}
-		
-		return signFlip * priorityCompare.compare(a, b);
+		int res = signFlip * priorityCompare.compare(a, b);
+		return res;
 		
 	}
 	
